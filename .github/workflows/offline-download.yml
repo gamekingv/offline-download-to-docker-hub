@@ -27,7 +27,7 @@ jobs:
           node-version: '14'
 
       # 安装aria2
-      - name: Download
+      - name: Install Aria2
         run: |
           sudo apt-get update
           sudo apt-get install aria2
@@ -36,8 +36,10 @@ jobs:
       - name: Download
         run: |
           aria2c "https://i1.hdslb.com/bfs/face/e3df1d12619fee10b471fc787be4372a09ee6b03.jpg@128w_128h_1o.webp"
+          ls
 
       # 上传
       - name: upload
         run: |
-          node upload.js ${{ secrets.URL }} ${{ secrets.USERNAME }} ${{ secrets.PASSWORD }}
+          npm install
+          node upload.js "${{ secrets.URL }}" "${{ secrets.USERNAME }}" "${{ secrets.PASSWORD }}"
