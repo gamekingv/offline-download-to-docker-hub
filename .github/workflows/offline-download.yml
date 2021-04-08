@@ -39,4 +39,5 @@ jobs:
 
       # 上传
       - name: upload
+        run: |
           node upload.js ${{ secrets.URL }} ${{ secrets.USERNAME }} ${{ secrets.PASSWORD }}
