@@ -20,15 +20,23 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      # 准备环境
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
-      # Runs a single command using the runners shell
-      - name: Set enviroment
+
+      # 安装aria2
+      - name: Download
         run: |
           sudo apt-get update
           sudo apt-get install aria2
+
+      # 下载
+      - name: Download
+        run: |
           aria2c "https://i1.hdslb.com/bfs/face/e3df1d12619fee10b471fc787be4372a09ee6b03.jpg@128w_128h_1o.webp"
-          
+
+      # 上传
+      - name: upload
+          node upload.js ${{ secrets.URL }} ${{ secrets.USERNAME }} ${{ secrets.PASSWORD }}
