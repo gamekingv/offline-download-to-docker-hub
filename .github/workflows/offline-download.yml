@@ -18,6 +18,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install aria2
+          node fetchtracker.js
 
       # 下载
       - name: Download
