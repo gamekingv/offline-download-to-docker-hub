@@ -15,6 +15,8 @@ const repository = {
 };
 
 async function requestSender(url, instance) {
+  instance.defaults.maxContentLength = Infinity;
+  instance.defaults.maxBodyLength = Infinity;
   if (repository.token) instance.defaults.headers.common['Authorization'] = `Bearer ${repository.token}`;
   try {
     return await instance.request({ url });
