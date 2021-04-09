@@ -94,10 +94,9 @@ async function uploadConfig(config) {
   return { digest, size };
 }
 
-async function uploadFile(path) {
+async function uploadFile(path, digest) {
   const { server, namespace, image } = repository;
   const size = fs.statSync(path).size;
-  const digest = await hashFile(path);
   const url = await getUploadURL();
   const instance = axios.create({
     method: 'put',
@@ -181,7 +180,7 @@ async function getManifests() {
     else throw '加载配置文件失败';
   }
   catch (error) {
-    const { status } = error.response ?? {};
+    const { status } = error.response;
     if (status === 404) return { config: { files: [] }, layers: [] };
     else throw error;
   }
@@ -197,18 +196,18 @@ function parseConfig(config) {
       let filePointer = cacheRoot;
       const id = Symbol();
       for (let i = 0; i < path.length - 1; i++) {
-        const nextPointer = filePointer.files?.find(e => e.name === path[i]);
+        const nextPointer = filePointer.files.find(e => e.name === path[i]);
         const id = Symbol();
         if (nextPointer) filePointer = nextPointer;
         else {
           const item = { name: path[i], type: 'folder', files: [], id };
           if (!item.uploadTime || item.uploadTime < uploadTime) item.uploadTime = uploadTime;
-          filePointer.files?.push(item);
+          filePointer.files.push(item);
           filePointer = item;
         }
       }
-      if (type === 'folder') filePointer.files?.push({ name: path[path.length - 1], type, files: [], id });
-      else filePointer.files?.push({ name: path[path.length - 1], type, size, digest, uploadTime, id });
+      if (type === 'folder') filePointer.files.push({ name: path[path.length - 1], type, files: [], id });
+      else filePointer.files.push({ name: path[path.length - 1], type, size, digest, uploadTime, id });
     });
     list = cacheRoot.files;
   }
@@ -233,14 +232,14 @@ function getPath(pathString, files) {
   path.pop();
   let filePointer = cacheRoot;
   path.slice(1).forEach(pathNode => {
-    let nextPointer = filePointer.files?.find(e => e.name === pathNode.name);
+    let nextPointer = filePointer.files.find(e => e.name === pathNode.name);
     if (!nextPointer) {
       nextPointer = { name: pathNode.name, type: 'folder', id: Symbol(), files: [], uploadTime: Date.now() };
       filePointer.files.push(nextPointer);
     }
     else if (nextPointer.type !== 'folder') {
       let i = 1;
-      while (filePointer.files?.some(e => e.name === `${pathNode.name} (${i})`)) i++;
+      while (filePointer.files.some(e => e.name === `${pathNode.name} (${i})`)) i++;
       nextPointer = { name: `${pathNode.name} (${i})`, type: 'folder', id: Symbol(), files: [], uploadTime: Date.now() };
       filePointer.files.push(nextPointer);
     }
@@ -249,19 +248,22 @@ function getPath(pathString, files) {
   return filePointer.files;
 }
 
-async function upload(path, retryCount = 0) {
+async function upload(path, digest, retryCount = 0) {
   if (retryCount === 0) console.log('开始上传文件 ' + path);
   const start = Date.now();
   try {
     const filename = path.split('/').pop();
-    const { digest, size } = await uploadFile(path);
+    const { size } = await uploadFile(path, digest);
+    console.log(path + ' 上传完成');
+    console.log('文件大小：' + sizeFormatter(size));
+    console.log('上传用时：' + timeFormatter(Date.now() - start));
+    console.log('开始上传配置');
     const { config, layers } = await getManifests();
-    if (layers.some(e => e.digest === digest)) throw '文件已存在';
     const files = parseConfig(config);
     const folder = getPath(path, files);
     if (folder.some(e => e.name === filename)) {
       let i = 1;
-      let [, name, ext] = filename.match(/(.*)(\.[^.]*)$/) ?? [];
+      let [, name, ext] = filename.match(/(.*)(\.[^.]*)$/);
       if (!name) {
         name = filename;
         ext = '';
@@ -274,8 +276,7 @@ async function upload(path, retryCount = 0) {
     folder.push({ name: filename, digest, size, type: 'file', uploadTime: Date.now(), id: Symbol() });
     layers.push({ mediaType: 'application/vnd.docker.image.rootfs.diff.tar.gzip', digest, size });
     await commit({ files, layers });
-    console.log(path + ' 上传完成');
-    console.log('文件大小：' + sizeFormatter(size));
+    console.log('上传配置完成');
     console.log('总用时：' + timeFormatter(Date.now() - start));
   }
   catch (error) {
@@ -284,11 +285,10 @@ async function upload(path, retryCount = 0) {
       console.log('HTTP状态码：' + error.response.status);
     }
     else console.log(error.toString());
-    if (error === '文件已存在') retryCount = 3;
     if (retryCount < 3) {
       retryCount++;
       console.log(`开始第 ${retryCount} 次重试上传`);
-      await upload(path, retryCount);
+      await upload(path, digest, retryCount);
     }
   }
   if (retryCount <= 1) console.log('');
@@ -351,7 +351,13 @@ function mapDirectory(root) {
   const files = mapDirectory('Offline');
   for (const file of files) {
     try {
-      await upload(file);
+      console.log('开始校验文件');
+      const start = Date.now();
+      const digest = await hashFile(file);
+      console.log('校验完成，用时：' + timeFormatter(Date.now() - start));
+      const { layers } = await getManifests();
+      if (layers.some(e => e.digest === digest)) throw '文件已存在';
+      await upload(file, digest);
     }
     catch (e) {
       if (typeof e === 'string')
