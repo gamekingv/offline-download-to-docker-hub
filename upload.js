@@ -313,14 +313,14 @@ function timeFormatter(time) {
   if (time < 60) timeString = `${time.toFixed(0)} 秒`;
   else if (time < 60 * 60) {
     const m = (time / 60).toFixed(0);
-    const s = (time - 60 * m) % 60;
+    const s = ((time - 60 * m) % 60).toFixed(0);
     timeString = `${m} 分钟`;
     if (s > 0) timeString += ` ${s} 秒`;
   }
   else {
     const h = (time / (60 * 60)).toFixed(0);
     const m = ((time - h * 60 * 60) / 60).toFixed(0);
-    const s = time - h * 60 * 60 - m * 60;
+    const s = (time - h * 60 * 60 - m * 60).toFixed(0);
     timeString += `${h} 小时`;
     if (s > 0 || m > 0) {
       timeString += ` ${m} 分钟`;
