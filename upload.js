@@ -105,7 +105,7 @@ async function uploadFile(path, digest) {
       'repository': [server, namespace, image].join('/'),
       'Content-Length': size
     },
-    timeout: 0
+    timeout: 7200000
   });
   instance.interceptors.request.use(e => Object.assign(e, {
     data: fs.createReadStream(path)
