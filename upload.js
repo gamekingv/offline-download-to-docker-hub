@@ -20,6 +20,7 @@ async function requestSender(url, instance) {
     return await instance.request({ url });
   }
   catch (error) {
+    if (!error.response) throw error;
     const { status, headers } = error.response;
     if (status === 401) {
       try {
@@ -28,12 +29,12 @@ async function requestSender(url, instance) {
           repository.token = token;
           instance.defaults.headers.common['Authorization'] = `Bearer ${repository.token}`;
         }
-        else throw 'getTokenFailed';
+        else throw '获取token失败';
         return await instance.request({ url });
       }
       catch (error) {
-        const { status, headers } = error.response;
-        if (status === 401) throw { message: 'need login', authenticateHeader: headers['www-authenticate'] };
+        const { status } = error.response;
+        if (status === 401) throw '账号或密码错误';
         else throw error;
       }
     }
@@ -42,7 +43,7 @@ async function requestSender(url, instance) {
 }
 
 async function getToken(authenticateHeader) {
-  if (!authenticateHeader) throw 'getTokenFailed';
+  if (!authenticateHeader) throw '获取token失败';
   const [, realm, service, , scope] = authenticateHeader.match(/^Bearer realm="([^"]*)",service="([^"]*)"(,scope="([^"]*)"|)/);
   if (realm && service) {
     let authenticateURL = `${realm}?service=${service}`;
@@ -52,7 +53,7 @@ async function getToken(authenticateHeader) {
     const { data } = await axios.get(authenticateURL, { headers, timeout: 5000 });
     return data.token;
   }
-  else throw 'getTokenFailed';
+  else throw '获取token失败';
 }
 
 async function getUploadURL() {
@@ -66,25 +67,26 @@ async function getUploadURL() {
   const url = `https://${server}/v2/${namespace}/${image}/blobs/uploads/`;
   const { headers } = await requestSender(url, instance);
   if (headers['location']) return headers['location'];
-  else throw 'getUploadURLFailed';
+  else throw '获取上传链接失败';
 }
 
 async function uploadConfig(config) {
   const { server, namespace, image } = repository;
   const size = config.length;
-  const digest = `sha256:${CryptoJS.SHA256(config)}`;
+  const hash = crypto.createHash('sha256').update(config);
+  const digest = `sha256:${hash.digest('hex').toString()}`;
   const url = await getUploadURL();
   const instance = axios.create({
     method: 'put',
     headers: {
       'Content-Type': 'application/octet-stream',
       'repository': [server, namespace, image].join('/'),
-      'Content-Size': size
+      'Content-Length': size
     },
     timeout: 0
   });
   instance.interceptors.request.use(e => Object.assign(e, {
-    data: new Blob([config], { type: 'application/octet-stream' })
+    data: Buffer.from(config, 'utf8')
   }));
   await requestSender(`${url}&digest=${digest}`, instance);
   return { digest, size };
@@ -100,7 +102,7 @@ async function uploadFile(path) {
     headers: {
       'Content-Type': 'application/octet-stream',
       'repository': [server, namespace, image].join('/'),
-      'Content-Size': size
+      'Content-Length': size
     },
     timeout: 0
   });
@@ -144,6 +146,215 @@ function hashFile(path) {
     const rs = fs.createReadStream(path);
     rs.on('error', reject);
     rs.on('data', chunk => hash.update(chunk));
-    rs.on('end', () => resolve(hash.digest('hex')));
+    rs.on('end', () => resolve(`sha256:${hash.digest('hex')}`));
   });
 }
+
+async function getManifests() {
+  const { server, namespace, image } = repository;
+  const manifestsURL = `https://${server}/v2/${namespace}/${image}/manifests/latest`;
+  const manifestsInstance = axios.create({
+    method: 'get',
+    headers: {
+      'Accept': 'application/vnd.docker.distribution.manifest.v2+json',
+      'repository': [server, namespace, image].join('/')
+    }
+  });
+  try {
+    const { data } = await requestSender(manifestsURL, manifestsInstance);
+    const layers = data.layers;
+    const digest = data.config.digest;
+    if (digest && layers) {
+      const configURL = `https://${server}/v2/${namespace}/${image}/blobs/${digest}`;
+      const configInstance = axios.create({
+        method: 'get',
+        headers: {
+          'repository': [server, namespace, image].join('/')
+        }
+      });
+      const { data } = await requestSender(configURL, configInstance);
+      if (data) return { config: data, layers };
+      else throw '加载配置文件失败';
+    }
+    else throw '加载配置文件失败';
+  }
+  catch (error) {
+    const { status } = error.response ?? {};
+    if (status === 404) return { config: { files: [] }, layers: [] };
+    else throw error;
+  }
+}
+function parseConfig(config) {
+  let list;
+  if (config.fileItems) {
+    const cacheRoot = { name: 'root', type: 'folder', files: [], id: Symbol() };
+    config.fileItems.forEach(({ name: pathString, size, digest, uploadTime }) => {
+      if (!uploadTime) uploadTime = Date.now();
+      const path = pathString.substr(1).split('/');
+      const type = digest ? 'file' : 'folder';
+      let filePointer = cacheRoot;
+      const id = Symbol();
+      for (let i = 0; i < path.length - 1; i++) {
+        const nextPointer = filePointer.files?.find(e => e.name === path[i]);
+        const id = Symbol();
+        if (nextPointer) filePointer = nextPointer;
+        else {
+          const item = { name: path[i], type: 'folder', files: [], id };
+          if (!item.uploadTime || item.uploadTime < uploadTime) item.uploadTime = uploadTime;
+          filePointer.files?.push(item);
+          filePointer = item;
+        }
+      }
+      if (type === 'folder') filePointer.files?.push({ name: path[path.length - 1], type, files: [], id });
+      else filePointer.files?.push({ name: path[path.length - 1], type, size, digest, uploadTime, id });
+    });
+    list = cacheRoot.files;
+  }
+  else if (config.files) {
+    const addID = (files) => {
+      files.forEach(file => {
+        file.id = Symbol();
+        if (file.files) addID(file.files);
+      });
+    };
+    addID(config.files);
+    list = config.files;
+  }
+  else throw '加载配置文件失败';
+  return list;
+}
+
+function getPath(pathString, files) {
+  const cacheRoot = { name: 'root', type: 'folder', files, id: Symbol() };
+  const path = pathString.split('/').map(e => e = { name: e });
+  path.unshift('');
+  path.pop();
+  let filePointer = cacheRoot;
+  path.slice(1).forEach(pathNode => {
+    let nextPointer = filePointer.files?.find(e => e.name === pathNode.name);
+    if (!nextPointer) {
+      nextPointer = { name: pathNode.name, type: 'folder', id: Symbol(), files: [], uploadTime: Date.now() };
+      filePointer.files.push(nextPointer);
+    }
+    else if (nextPointer.type !== 'folder') {
+      let i = 1;
+      while (filePointer.files?.some(e => e.name === `${pathNode.name} (${i})`)) i++;
+      nextPointer = { name: `${pathNode.name} (${i})`, type: 'folder', id: Symbol(), files: [], uploadTime: Date.now() };
+      filePointer.files.push(nextPointer);
+    }
+    filePointer = nextPointer;
+  });
+  return filePointer.files;
+}
+
+async function upload(path, retryCount = 0) {
+  if (retryCount === 0) console.log('开始上传文件 ' + path);
+  const start = Date.now();
+  try {
+    const filename = path.split('/').pop();
+    const { digest, size } = await uploadFile(path);
+    const { config, layers } = await getManifests();
+    if (layers.some(e => e.digest === digest)) throw '文件已存在';
+    const files = parseConfig(config);
+    const folder = getPath(path, files);
+    if (folder.some(e => e.name === filename)) {
+      let i = 1;
+      let [, name, ext] = filename.match(/(.*)(\.[^.]*)$/) ?? [];
+      if (!name) {
+        name = filename;
+        ext = '';
+      }
+      while (folder.some(e => e.name === `${name} (${i})${ext}`)) {
+        i++;
+      }
+      filename = `${name} (${i})${ext}`;
+    }
+    folder.push({ name: filename, digest, size, type: 'file', uploadTime: Date.now(), id: Symbol() });
+    layers.push({ mediaType: 'application/vnd.docker.image.rootfs.diff.tar.gzip', digest, size });
+    await commit({ files, layers });
+    console.log(path + ' 上传完成');
+    console.log('文件大小：' + sizeFormatter(size));
+    console.log('总用时：' + timeFormatter(Date.now() - start));
+  }
+  catch (error) {
+    console.log(path + ' 上传出错：');
+    if (error.response) {
+      console.log('HTTP状态码：' + error.response.status);
+    }
+    else console.log(error.toString());
+    if (error === '文件已存在') retryCount = 3;
+    if (retryCount < 3) {
+      retryCount++;
+      console.log(`开始第 ${retryCount} 次重试上传`);
+      await upload(path, retryCount);
+    }
+  }
+  if (retryCount <= 1) console.log('');
+}
+
+function sizeFormatter(fileSize) {
+  if (typeof fileSize !== 'number') return '-';
+  else if (fileSize < 1024) {
+    return `${fileSize.toFixed(2)}B`;
+  } else if (fileSize < (1024 * 1024)) {
+    return `${(fileSize / 1024).toFixed(2)}KB`;
+  } else if (fileSize < (1024 * 1024 * 1024)) {
+    return `${(fileSize / (1024 * 1024)).toFixed(2)}MB`;
+  } else {
+    return `${(fileSize / (1024 * 1024 * 1024)).toFixed(2)}GB`;
+  }
+}
+
+function timeFormatter(time) {
+  time = time / 1000;
+  let timeString = '';
+  if (time < 60) timeString = `${time.toFixed(0)} 秒`;
+  else if (time < 60 * 60) {
+    const m = (time / 60).toFixed(0);
+    const s = (time - 60 * m) % 60;
+    timeString = `${m} 分钟`;
+    if (s > 0) timeString += ` ${s} 秒`;
+  }
+  else {
+    const h = (time / (60 * 60)).toFixed(0);
+    const m = ((time - h * 60 * 60) / 60).toFixed(0);
+    const s = time - h * 60 * 60 - m * 60;
+    timeString += `${h} 小时`;
+    if (s > 0 || m > 0) {
+      timeString += ` ${m} 分钟`;
+      if (s > 0) timeString += ` ${s} 秒`;
+    }
+  }
+  return timeString;
+}
+
+function mapDirectory(root) {
+  const filesArr = [];
+  root += '/';
+  (function dir(dirpath) {
+    const files = fs.readdirSync(dirpath);
+    files.forEach((item) => {
+      const info = fs.statSync(dirpath + item);
+      if (info.isDirectory()) {
+        dir(dirpath + item + '/');
+      } else {
+        filesArr.push(dirpath + item);
+      }
+    });
+  })(root);
+  return filesArr;
+}
+
+(async () => {
+  const files = mapDirectory('Offline');
+  for (const file of files) {
+    try {
+      await upload(file);
+    }
+    catch (e) {
+      if (typeof e === 'string')
+        console.log(e);
+      else console.log(e.toString());
+    }
+  }
+})();
