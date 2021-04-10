@@ -14,9 +14,28 @@ const repository = {
   image
 };
 
+const preset = {
+  retry: 3,
+  timeout: 10000
+};
+
+async function errorHandler(error) {
+  const config = error.config;
+  if (!config || [401, 404].some(status => error.response?.status === status)) return await Promise.reject(error);
+  config.__retryCount = config.__retryCount ?? 0;
+  if (config.__retryCount >= preset.retry) return await Promise.reject(error);
+  config.__retryCount += 1;
+  await new Promise(res => setTimeout(() => res(''), 1000));
+  return await axios(config);
+}
+
+axios.defaults.timeout = preset.timeout;
+axios.interceptors.response.use(undefined, errorHandler);
+
 async function requestSender(url, instance) {
   instance.defaults.maxContentLength = Infinity;
   instance.defaults.maxBodyLength = Infinity;
+  instance.interceptors.response.use(undefined, errorHandler);
   if (repository.token) instance.defaults.headers.common['Authorization'] = `Bearer ${repository.token}`;
   try {
     return await instance.request({ url });
@@ -285,11 +304,11 @@ async function upload(path, digest, retryCount = 0) {
       console.log('HTTP状态码：' + error.response.status);
     }
     else console.log(error.toString());
-    if (retryCount < 3) {
-      retryCount++;
-      console.log(`开始第 ${retryCount} 次重试上传`);
-      await upload(path, digest, retryCount);
-    }
+    // if (retryCount < 3) {
+    //   retryCount++;
+    //   console.log(`开始第 ${retryCount} 次重试上传`);
+    //   await upload(path, digest, retryCount);
+    // }
   }
   if (retryCount <= 1) console.log('');
 }
