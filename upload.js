@@ -21,7 +21,7 @@ const preset = {
 
 async function errorHandler(error) {
   const config = error.config;
-  if (!config || [401, 404].some(status => error.response?.status === status)) return await Promise.reject(error);
+  if (!config || [401, 404, 504].some(status => error.response?.status === status)) return await Promise.reject(error);
   config.__retryCount = config.__retryCount ?? 0;
   if (config.__retryCount >= preset.retry) return await Promise.reject(error);
   config.__retryCount += 1;
@@ -304,11 +304,11 @@ async function upload(path, digest, retryCount = 0) {
       console.log('HTTP状态码：' + error.response.status);
     }
     else console.log(error.toString());
-    // if (retryCount < 3) {
-    //   retryCount++;
-    //   console.log(`开始第 ${retryCount} 次重试上传`);
-    //   await upload(path, digest, retryCount);
-    // }
+    if (retryCount < 3) {
+      retryCount++;
+      console.log(`开始第 ${retryCount} 次重试上传`);
+      await upload(path, digest, retryCount);
+    }
   }
   if (retryCount <= 1) console.log('');
 }
