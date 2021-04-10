@@ -249,7 +249,7 @@ function getPath(pathString, files) {
 }
 
 async function upload(path, digest, retryCount = 0) {
-  if (retryCount === 0) console.log('开始上传文件 ' + path);
+  if (retryCount === 0) console.log('开始上传文件：' + path);
   const start = Date.now();
   try {
     const filename = path.split('/').pop();
