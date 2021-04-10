@@ -312,15 +312,15 @@ function timeFormatter(time) {
   let timeString = '';
   if (time < 60) timeString = `${time.toFixed(0)} 秒`;
   else if (time < 60 * 60) {
-    const m = (time / 60).toFixed(0);
-    const s = ((time - 60 * m) % 60).toFixed(0);
+    const m = Math.floor(time / 60);
+    const s = Math.round((time - 60 * m) % 60);
     timeString = `${m} 分钟`;
     if (s > 0) timeString += ` ${s} 秒`;
   }
   else {
-    const h = (time / (60 * 60)).toFixed(0);
-    const m = ((time - h * 60 * 60) / 60).toFixed(0);
-    const s = (time - h * 60 * 60 - m * 60).toFixed(0);
+    const h = Math.floor(time / (60 * 60));
+    const m = Math.floor((time - h * 60 * 60) / 60);
+    const s = Math.round(time - h * 60 * 60 - m * 60);
     timeString += `${h} 小时`;
     if (s > 0 || m > 0) {
       timeString += ` ${m} 分钟`;
