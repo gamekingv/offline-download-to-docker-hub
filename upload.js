@@ -351,7 +351,7 @@ function mapDirectory(root) {
   const files = mapDirectory('Offline');
   for (const file of files) {
     try {
-      console.log('开始校验文件');
+      console.log('开始校验文件：' + file);
       const start = Date.now();
       const digest = await hashFile(file);
       console.log('校验完成，用时：' + timeFormatter(Date.now() - start));
