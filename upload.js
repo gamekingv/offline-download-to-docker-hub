@@ -1,6 +1,7 @@
 const axios = require('axios');
 const fs = require('fs');
 const crypto = require('crypto');
+const request = require('request');
 
 const [, , repositoryUrl, username, password] = process.argv;
 
@@ -21,20 +22,22 @@ const preset = {
 
 async function errorHandler(error) {
   const config = error.config;
-  if (!config || [401, 404, 504].some(status => error.response?.status === status)) return await Promise.reject(error);
-  config.__retryCount = config.__retryCount ?? 0;
+  if (!config || [401, 404, 504].some(status => error.response.status === status)) return await Promise.reject(error);
+  console.log('请求出错，HTTP状态码：' + error.response.status);
+  config.__retryCount = config.__retryCount || 0;
   if (config.__retryCount >= preset.retry) return await Promise.reject(error);
   config.__retryCount += 1;
   await new Promise(res => setTimeout(() => res(''), 1000));
+  console.log(`第 ${config.__retryCount} 次重试请求`);
   return await axios(config);
 }
 
 axios.defaults.timeout = preset.timeout;
 axios.interceptors.response.use(undefined, errorHandler);
+axios.defaults.maxContentLength = Infinity;
+axios.defaults.maxBodyLength = Infinity;
 
 async function requestSender(url, instance) {
-  instance.defaults.maxContentLength = Infinity;
-  instance.defaults.maxBodyLength = Infinity;
   instance.interceptors.response.use(undefined, errorHandler);
   if (repository.token) instance.defaults.headers.common['Authorization'] = `Bearer ${repository.token}`;
   try {
@@ -117,20 +120,27 @@ async function uploadFile(path, digest) {
   const { server, namespace, image } = repository;
   const size = fs.statSync(path).size;
   const url = await getUploadURL();
-  const instance = axios.create({
-    method: 'put',
-    headers: {
-      'Content-Type': 'application/octet-stream',
-      'repository': [server, namespace, image].join('/'),
-      'Content-Length': size
-    },
-    timeout: 7200000
+  await new Promise((res, rej) => {
+    fs.createReadStream(path).pipe(request({
+      url: `${url}&digest=${digest}`,
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'repository': [server, namespace, image].join('/'),
+        'Content-Length': size,
+        'Authorization': `Bearer ${repository.token}`
+      }
+    }, (error, response) => {
+      const result = { response: { status: response.statusCode } };
+      console.log(error);
+      if (error) {
+        console.log(error.toString());
+        rej(result);
+      }
+      else res(result);
+    }));
   });
-  instance.interceptors.request.use(e => Object.assign(e, {
-    data: fs.createReadStream(path)
-  }));
-  await requestSender(`${url}&digest=${digest}`, instance);
-  return { digest, size };
+  return { size };
 }
 
 async function commit(config) {
@@ -278,6 +288,7 @@ async function upload(path, digest, retryCount = 0) {
     console.log('上传用时：' + timeFormatter(Date.now() - start));
     console.log('开始上传配置');
     const { config, layers } = await getManifests();
+    if (layers.some(e => e.digest === digest)) throw '文件已存在';
     const files = parseConfig(config);
     const folder = getPath(path, files);
     if (folder.some(e => e.name === filename)) {
@@ -304,7 +315,7 @@ async function upload(path, digest, retryCount = 0) {
       console.log('HTTP状态码：' + error.response.status);
     }
     else console.log(error.toString());
-    if (retryCount < 3) {
+    if (retryCount < 3 && error !== '文件已存在') {
       retryCount++;
       console.log(`开始第 ${retryCount} 次重试上传`);
       await upload(path, digest, retryCount);
@@ -373,6 +384,7 @@ function mapDirectory(root) {
       console.log('开始校验文件：' + file);
       const start = Date.now();
       const digest = await hashFile(file);
+      console.log(digest);
       console.log('校验完成，用时：' + timeFormatter(Date.now() - start));
       const { layers } = await getManifests();
       if (layers.some(e => e.digest === digest)) throw '文件已存在';
