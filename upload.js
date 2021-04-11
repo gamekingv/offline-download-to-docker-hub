@@ -132,7 +132,6 @@ async function uploadFile(path, digest) {
       }
     }, (error, response) => {
       const result = { response: { status: response.statusCode } };
-      console.log(error);
       if (error) {
         console.log(error.toString());
         rej(result);
