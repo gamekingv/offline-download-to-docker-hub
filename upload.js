@@ -384,6 +384,7 @@ function mapDirectory(root) {
       const start = Date.now();
       const digest = await hashFile(file);
       console.log('校验完成，用时：' + timeFormatter(Date.now() - start));
+      if (digest === 'sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855') throw '空文件';
       const { layers } = await getManifests();
       if (layers.some(e => e.digest === digest)) throw '文件已存在';
       await upload(file, digest);
