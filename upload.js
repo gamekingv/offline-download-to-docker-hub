@@ -384,16 +384,13 @@ function mapDirectory(root) {
       console.log('开始校验文件：' + file);
       const start = Date.now();
       const digest = await hashFile(file);
-      console.log(digest);
       console.log('校验完成，用时：' + timeFormatter(Date.now() - start));
       const { layers } = await getManifests();
       if (layers.some(e => e.digest === digest)) throw '文件已存在';
       await upload(file, digest);
     }
     catch (e) {
-      if (typeof e === 'string')
-        console.log(e);
-      else console.log(e.toString());
+      console.log(e.toString());
     }
   }
 })();
