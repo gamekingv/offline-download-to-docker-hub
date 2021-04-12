@@ -280,7 +280,7 @@ async function upload(path, digest, retryCount = 0) {
   try {
     const { layers: testLayers } = await getManifests();
     const size = fs.statSync(path).size;
-    const filename = path.split('/').pop();
+    let filename = path.split('/').pop();
     if (testLayers.some(e => e.digest === digest)) console.log('文件已存在');
     else {
       await uploadFile(path, digest, size);
