@@ -309,7 +309,6 @@ async function upload(path, digest, retryCount = 0) {
       layers.push({ mediaType: 'application/vnd.docker.image.rootfs.diff.tar.gzip', digest, size });
     await commit({ files, layers });
     console.log('上传配置完成');
-    console.log('总用时：' + timeFormatter(Date.now() - start));
   }
   catch (error) {
     console.log(path + ' 上传出错：');
@@ -389,6 +388,7 @@ function mapDirectory(root) {
       console.log('校验完成，用时：' + timeFormatter(Date.now() - start));
       if (digest === 'sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855') throw '空文件';
       await upload(file, digest);
+      console.log('总用时：' + timeFormatter(Date.now() - start));
     }
     catch (e) {
       console.log(e.toString());
