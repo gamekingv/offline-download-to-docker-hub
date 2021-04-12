@@ -116,9 +116,8 @@ async function uploadConfig(config) {
   return { digest, size };
 }
 
-async function uploadFile(path, digest) {
+async function uploadFile(path, digest, size) {
   const { server, namespace, image } = repository;
-  const size = fs.statSync(path).size;
   const url = await getUploadURL();
   await new Promise((res, rej) => {
     fs.createReadStream(path).pipe(request({
@@ -139,7 +138,6 @@ async function uploadFile(path, digest) {
       else res(result);
     }));
   });
-  return { size };
 }
 
 async function commit(config) {
@@ -280,14 +278,18 @@ async function upload(path, digest, retryCount = 0) {
   if (retryCount === 0) console.log('开始上传文件：' + path);
   const start = Date.now();
   try {
+    const { layers: testLayers } = await getManifests();
+    const size = fs.statSync(path).size;
     const filename = path.split('/').pop();
-    const { size } = await uploadFile(path, digest);
-    console.log(path + ' 上传完成');
+    if (testLayers.some(e => e.digest === digest)) console.log('文件已存在');
+    else {
+      await uploadFile(path, digest, size);
+      console.log(path + ' 上传完成');
+      console.log('上传用时：' + timeFormatter(Date.now() - start));
+    }
     console.log(`文件大小：${sizeFormatter(size)}（${size}）`);
-    console.log('上传用时：' + timeFormatter(Date.now() - start));
     console.log('开始上传配置');
     const { config, layers } = await getManifests();
-    if (layers.some(e => e.digest === digest)) throw '文件已存在';
     const files = parseConfig(config);
     const folder = getPath(path, files);
     if (folder.some(e => e.name === filename)) {
@@ -303,7 +305,8 @@ async function upload(path, digest, retryCount = 0) {
       filename = `${name} (${i})${ext}`;
     }
     folder.push({ name: filename, digest, size, type: 'file', uploadTime: Date.now(), id: Symbol() });
-    layers.push({ mediaType: 'application/vnd.docker.image.rootfs.diff.tar.gzip', digest, size });
+    if (!layers.some(e => e.digest === digest))
+      layers.push({ mediaType: 'application/vnd.docker.image.rootfs.diff.tar.gzip', digest, size });
     await commit({ files, layers });
     console.log('上传配置完成');
     console.log('总用时：' + timeFormatter(Date.now() - start));
@@ -314,7 +317,7 @@ async function upload(path, digest, retryCount = 0) {
       console.log('HTTP状态码：' + error.response.status);
     }
     else console.log(error.toString());
-    if (retryCount < 3 && error !== '文件已存在') {
+    if (retryCount < 3) {
       retryCount++;
       console.log(`开始第 ${retryCount} 次重试上传`);
       await upload(path, digest, retryCount);
@@ -385,8 +388,6 @@ function mapDirectory(root) {
       console.log(digest);
       console.log('校验完成，用时：' + timeFormatter(Date.now() - start));
       if (digest === 'sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855') throw '空文件';
-      const { layers } = await getManifests();
-      if (layers.some(e => e.digest === digest)) throw '文件已存在';
       await upload(file, digest);
     }
     catch (e) {
