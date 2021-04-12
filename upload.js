@@ -283,7 +283,7 @@ async function upload(path, digest, retryCount = 0) {
     const filename = path.split('/').pop();
     const { size } = await uploadFile(path, digest);
     console.log(path + ' 上传完成');
-    console.log('文件大小：' + sizeFormatter(size));
+    console.log(`文件大小：${sizeFormatter(size)}（${size}）`);
     console.log('上传用时：' + timeFormatter(Date.now() - start));
     console.log('开始上传配置');
     const { config, layers } = await getManifests();
