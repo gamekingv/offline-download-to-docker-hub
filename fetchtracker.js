@@ -12,9 +12,6 @@ const fs = require('fs');
     );
     console.log('获取tracker成功');
     console.log('');
-    const urls = fs.readFileSync('./list.txt', 'utf8');
-    console.log('准备开始下载：');
-    console.log(urls);
   }
   catch (e) {
     console.log(e.toString());

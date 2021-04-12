@@ -320,7 +320,6 @@ async function upload(path, digest, retryCount = 0) {
       await upload(path, digest, retryCount);
     }
   }
-  if (retryCount <= 1) console.log('');
 }
 
 function sizeFormatter(fileSize) {
@@ -392,5 +391,6 @@ function mapDirectory(root) {
     catch (e) {
       console.log(e.toString());
     }
+    console.log('');
   }
 })();
