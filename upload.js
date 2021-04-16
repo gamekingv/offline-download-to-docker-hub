@@ -275,7 +275,7 @@ function getPath(pathString, files) {
 }
 
 async function upload(path, digest, retryCount = 0) {
-  if (retryCount === 0) console.log('开始上传文件：' + path);
+  if (retryCount === 0) console.log('开始上传文件');
   const start = Date.now();
   try {
     const { layers: testLayers } = await getManifests();
@@ -284,7 +284,7 @@ async function upload(path, digest, retryCount = 0) {
     if (testLayers.some(e => e.digest === digest)) console.log('文件已存在');
     else {
       await uploadFile(path, digest, size);
-      console.log('上传完成');
+      console.log('文件上传完成');
       console.log('上传用时：' + timeFormatter(Date.now() - start));
     }
     console.log(`文件大小：${sizeFormatter(size)}（${size}）`);
@@ -308,7 +308,7 @@ async function upload(path, digest, retryCount = 0) {
     if (!layers.some(e => e.digest === digest))
       layers.push({ mediaType: 'application/vnd.docker.image.rootfs.diff.tar.gzip', digest, size });
     await commit({ files, layers });
-    console.log('上传配置完成');
+    console.log('配置上传完成');
   }
   catch (error) {
     console.log(path + ' 上传出错：');
