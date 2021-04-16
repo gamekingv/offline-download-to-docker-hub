@@ -284,7 +284,7 @@ async function upload(path, digest, retryCount = 0) {
     if (testLayers.some(e => e.digest === digest)) console.log('文件已存在');
     else {
       await uploadFile(path, digest, size);
-      console.log(path + ' 上传完成');
+      console.log('上传完成');
       console.log('上传用时：' + timeFormatter(Date.now() - start));
     }
     console.log(`文件大小：${sizeFormatter(size)}（${size}）`);
