@@ -380,6 +380,10 @@ function mapDirectory(root) {
 (async () => {
   const files = mapDirectory('Offline');
   for (const file of files) {
+    if (file.includes('_____padding_file')) {
+      console.log('跳过文件：' + file);
+      continue;
+    }
     try {
       console.log('开始校验文件：' + file);
       const start = Date.now();
