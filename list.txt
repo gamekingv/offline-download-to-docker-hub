@@ -1,2 +1,10 @@
-magnet:?xt=urn:btih:4MHVM7W7YAPC7KS37MGN2AY373LSO2H4&dn=&tr=http%3A%2F%2F104.238.198.186%3A8000%2Fannounce&tr=udp%3A%2F%2F104.238.198.186%3A8000%2Fannounce&tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker3.itzmx.com%3A6961%2Fannounce&tr=http%3A%2F%2Ftracker4.itzmx.com%3A2710%2Fannounce&tr=http%3A%2F%2Ftracker.publicbt.com%3A80%2Fannounce&tr=http%3A%2F%2Ftracker.prq.to%2Fannounce&tr=http%3A%2F%2Fopen.acgtracker.com%3A1096%2Fannounce&tr=https%3A%2F%2Ft-115.rhcloud.com%2Fonly_for_ylbud&tr=http%3A%2F%2Ftracker1.itzmx.com%3A8080%2Fannounce&tr=http%3A%2F%2Ftracker2.itzmx.com%3A6961%2Fannounce&tr=udp%3A%2F%2Ftracker1.itzmx.com%3A8080%2Fannounce&tr=udp%3A%2F%2Ftracker2.itzmx.com%3A6961%2Fannounce&tr=udp%3A%2F%2Ftracker3.itzmx.com%3A6961%2Fannounce&tr=udp%3A%2F%2Ftracker4.itzmx.com%3A2710%2Fannounce&tr=http%3A%2F%2Ftr.bangumi.moe%3A6969%2Fannounce&tr=http%3A%2F%2Ft.nyaatracker.com%2Fannounce&tr=http%3A%2F%2Fopen.nyaatorrents.info%3A6544%2Fannounce&tr=http%3A%2F%2Ft2.popgo.org%3A7456%2Fannonce&tr=http%3A%2F%2Fshare.camoe.cn%3A8080%2Fannounce&tr=http%3A%2F%2Fopentracker.acgnx.se%2Fannounce&tr=http%3A%2F%2Ftracker.acgnx.se%2Fannounce&tr=http%3A%2F%2Fnyaa.tracker.wf%3A7777%2Fannounce&tr=http%3A%2F%2Ft.acg.rip%3A6699%2Fannounce&tr=http%3A%2F%2Ftracker.kamigami.org%3A2710%2Fannounce&tr=https%3A%2F%2Ftracker.nanoha.org%3A443%2Fannounce&tr=https%3A%2F%2Ftr.bangumi.moe%3A9696%2Fannounce
-  dir=Offline/Anime_Offline/通灵王
+https://drive.google.com/uc?export=download&id=16PZvZ3yJ4pWB5I3fsxKTIDQj9v-AoAnW
+  dir=Offline/旧番/1970-2019/鬼父
+https://drive.google.com/uc?export=download&id=12-iM1U3UW0_Xko_um8Y6CIxew6zl4InK
+  dir=Offline/旧番/1970-2019/鬼父
+https://drive.google.com/uc?export=download&id=1hGKPk71BlYJ-7pojuY7b7yfrMCPlMAHB
+  dir=Offline/旧番/1970-2019/鬼父
+https://drive.google.com/uc?export=download&id=1yTC25rh_7LOQirTjQotHpQZeQlbixO09
+  dir=Offline/旧番/1970-2019/鬼父
+https://drive.google.com/uc?export=download&id=179RUWdRcMF5qW2cqj4XIcMEz98m5J0v0
+  dir=Offline/旧番/1970-2019/鬼父
