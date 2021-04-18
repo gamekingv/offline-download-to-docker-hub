@@ -391,6 +391,7 @@ function mapDirectory(root) {
   for (const file of files) {
     if (ignoreFilters.some(filter => file.match(filter))) {
       console.log('跳过文件：' + file);
+      console.log('');
       continue;
     }
     try {
