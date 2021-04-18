@@ -293,6 +293,10 @@ async function upload(path, digest, retryCount = 0) {
     const files = parseConfig(config);
     const folder = getPath(path, files);
     if (folder.some(e => e.name === filename)) {
+      if (layers.some(e => e.digest === digest)) {
+        console.log('未更改配置文件');
+        return;
+      }
       let i = 1;
       let [, name, ext] = filename.match(/(.*)(\.[^.]*)$/);
       if (!name) {
