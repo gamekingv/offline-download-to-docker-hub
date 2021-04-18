@@ -15,6 +15,11 @@ const repository = {
   image
 };
 
+const ignoreFilters = [
+  '_____padding_file',
+  /\.torrent$/
+];
+
 const preset = {
   retry: 3,
   timeout: 10000
@@ -384,7 +389,7 @@ function mapDirectory(root) {
 (async () => {
   const files = mapDirectory('Offline');
   for (const file of files) {
-    if (file.includes('_____padding_file')) {
+    if (ignoreFilters.some(filter => file.match(filter))) {
       console.log('跳过文件：' + file);
       continue;
     }
