@@ -292,7 +292,6 @@ async function upload(path, digest, retryCount = 0) {
       console.log('文件上传完成');
       console.log('上传用时：' + timeFormatter(Date.now() - start));
     }
-    console.log(`文件大小：${sizeFormatter(size)}（${size}）`);
     console.log('开始上传配置');
     const { config, layers } = await getManifests();
     const files = parseConfig(config);
@@ -400,6 +399,8 @@ function mapDirectory(root) {
       const digest = await hashFile(file);
       console.log(digest);
       console.log('校验完成，用时：' + timeFormatter(Date.now() - start));
+      const size = fs.statSync(path).size;
+      console.log(`文件大小：${sizeFormatter(size)}（${size}）`);
       if (digest === 'sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855') throw '空文件';
       await upload(file, digest);
       console.log('总用时：' + timeFormatter(Date.now() - start));
