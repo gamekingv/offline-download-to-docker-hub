@@ -399,7 +399,7 @@ function mapDirectory(root) {
       const digest = await hashFile(file);
       console.log(digest);
       console.log('校验完成，用时：' + timeFormatter(Date.now() - start));
-      const size = fs.statSync(path).size;
+      const size = fs.statSync(file).size;
       console.log(`文件大小：${sizeFormatter(size)}（${size}）`);
       if (digest === 'sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855') throw '空文件';
       await upload(file, digest);
