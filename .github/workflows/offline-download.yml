@@ -2,6 +2,8 @@ name: offline-download
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'list.txt'
   workflow_dispatch:
 
 jobs:
