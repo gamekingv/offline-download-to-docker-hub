@@ -62,6 +62,7 @@ async function requestSender(url, instance) {
         return await instance.request({ url });
       }
       catch (error) {
+        if (!error.response) throw error;
         const { status } = error.response;
         if (status === 401) throw '账号或密码错误';
         else throw error;
