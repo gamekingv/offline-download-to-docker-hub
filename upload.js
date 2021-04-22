@@ -211,9 +211,11 @@ async function getManifests() {
     else throw '加载配置文件失败';
   }
   catch (error) {
-    const { status } = error.response;
-    if (status === 404) return { config: { files: [] }, layers: [] };
-    else throw error;
+    if (error.response) {
+      const { status } = error.response;
+      if (status === 404) return { config: { files: [] }, layers: [] };
+    }
+    throw error;
   }
 }
 function parseConfig(config) {
