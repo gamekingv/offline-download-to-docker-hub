@@ -1,4 +1,4 @@
-name: exhentai-torrent-download
+name: decompression-download
 on:
   push:
     branches: [ main ]
@@ -43,4 +43,4 @@ jobs:
       # 上传
       - name: Upload
         run: |
-          node upload.js "${{ secrets.URL }}" "${{ secrets.USERNAME }}" "${{ secrets.PASSWORD }}"
+          node upload.js "${{ secrets.URL }}" "${{ secrets.USERNAME }}" "${{ secrets.PASSWORD }}" decompression
