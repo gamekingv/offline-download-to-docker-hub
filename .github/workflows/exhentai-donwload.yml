@@ -28,7 +28,7 @@ jobs:
       - name: Download
         run: |
           echo "开始下载："
-          cat list.txt
+          cat decompression-list.txt
           aria2c --conf-path=aria2.conf --header="Cookie: ${{ secrets.EX_COOKIES }}" -i decompression-list.txt
           
       # 解压
