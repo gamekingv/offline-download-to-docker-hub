@@ -29,7 +29,7 @@ jobs:
         run: |
           echo "开始下载："
           cat list.txt
-          aria2c --conf-path=aria2.conf --header="Cookie: ${{ secrets.COOKIES }}" -i exhentai-list.txt
+          aria2c --conf-path=aria2.conf --header="Cookie: ${{ secrets.EX_COOKIES }}" -i exhentai-list.txt
           
       # 解压
       - name: Decompression
