@@ -89,7 +89,7 @@ async function addToQueue() {
     }
     else {
       const in_progress_count = await workflowCheck();
-      if (in_progress_count > 0) {
+      if (in_progress_count > 1) {
         await addToQueue();
         process.exit(1);
       }
