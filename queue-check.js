@@ -94,6 +94,7 @@ async function addToQueue() {
         console.log('有任务正在进行，保存到任务队列');
         process.exit(1);
       }
+      else console.log('正常进行任务');
     }
   }
   catch (error) {

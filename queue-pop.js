@@ -45,7 +45,6 @@ async function saveQueue(filename, queue) {
 
 async function getQueue() {
   const { body: queue } = await client.get(`https://raw.githubusercontent.com/${repository}/main/queue.json`);
-  console.log(queue);
   return queue;
 }
 
@@ -57,11 +56,9 @@ async function executeTask({ name, list }) {
       list
     }
   });
-  console.log(body);
   await client.post(`https://api.github.com/repos/${repository}/actions/workflows/${name}.yml/dispatches`, {
     headers: {
       'Accept': 'application/vnd.github.v3+json',
-      'Content-Length': body.length,
       'Authorization': `token ${dispatchToken}`
     },
     body,
