@@ -1,6 +1,15 @@
 name: google-drive-download
 on:
   workflow_dispatch:
+    inputs:
+      type:
+        description: 'dispatch type'
+        required: false
+        default: ''
+      list:
+        description: 'download list'
+        required: false
+        default: ''
 
 jobs:
   build:
