@@ -69,7 +69,7 @@ async function executeTask({ name, list }) {
   try {
     const queue = await getQueue();
     if (queue && queue.length > 0) {
-      const task = queue.pop();
+      const task = queue.shift();
       await executeTask(task);
       await saveQueue('queue.json', JSON.stringify(queue, null, 2));
       console.log('已触发下一个队列任务');
