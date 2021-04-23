@@ -73,7 +73,8 @@ async function workflowCheck() {
 
 async function addToQueue() {
   const queue = JSON.parse(fs.readFileSync('queue.json')) || [];
-  const list = fs.readFileSync(list_name[action_name]).toString();
+  let list = '';
+  if (list_name[action_name]) list = fs.readFileSync(list_name[action_name]).toString();
   queue.push({
     name: action_name,
     list
