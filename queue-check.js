@@ -75,7 +75,7 @@ async function addToQueue() {
   const list = fs.readFileSync(list_name[action_name]).toString();
   queue.push({
     name: action_name,
-    inputs: { list }
+    list
   });
   await saveQueue('queue.json', JSON.stringify(queue, null, 2));
 }

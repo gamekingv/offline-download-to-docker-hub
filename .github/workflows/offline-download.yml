@@ -5,6 +5,15 @@ on:
     paths:
       - 'list.txt'
   workflow_dispatch:
+    inputs:
+      type:
+        description: 'dispatch type'
+        required: false
+        default: ''
+      list:
+        description: 'download list'
+        required: false
+        default: ''
 
 jobs:
   build:
