@@ -2,5 +2,9 @@
   {
     "name": "google-drive-download",
     "list": ""
+  },
+  {
+    "name": "offline-download",
+    "list": "magnet:?xt=urn:btih:dcca5bb9df3feb8dc5ccb04d1ab27a5c0a65a8b2\n"
   }
 ]
