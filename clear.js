@@ -97,7 +97,7 @@ function mapDirectory(root) {
     if (remainFiles.length > 0) {
       console.log(`成功处理 ${uploadedFiles.length} 个文件`);
       console.log(`剩余 ${remainFiles.length} 个文件，将在下一次Actions下载`);
-      if (uploadedFiles.length > 35) {
+      if (uploadedFiles.length > 17) {
         await triggerNext();
         console.log('成功触发下一次任务');
       }
