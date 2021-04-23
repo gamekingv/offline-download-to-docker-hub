@@ -32,7 +32,7 @@ jobs:
       # 检查任务队列
       - name: Queue Check
         run: |
-          node queue-check.js "${{ github.repository }}" "${{ github.token }}" "${{ github.workflow }}" "${{ github.event.inputs.type }}"
+          node queue-check.js "${{ github.repository }}" "${{ secrets.TOKEN }}" "${{ github.workflow }}" "${{ github.event.inputs.type }}"
 
       # 下载
       - name: Download
@@ -48,10 +48,10 @@ jobs:
       # 清理已进行任务
       - name: Clear done task
         run: |
-          node clear.js "${{ github.repository }}" "${{ github.token }}" "${{ github.token }}"
+          node clear.js "${{ github.repository }}" "${{ secrets.TOKEN }}" "${{ secrets.TOKEN }}"
 
       # 执行队列剩余任务
       - name: Queue Pop
         if: ${{ failure() }}
         run: |
-          node queue-pop.js "${{ github.repository }}" "${{ github.token }}" "${{ github.token }}" 
+          node queue-pop.js "${{ github.repository }}" "${{ secrets.TOKEN }}" "${{ secrets.TOKEN }}" 
