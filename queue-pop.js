@@ -44,7 +44,7 @@ async function saveQueue(filename, queue) {
 }
 
 async function getQueue() {
-  const { body: queue } = await client.get(`https://raw.githubusercontent.com${repository}/main/queue.json`);
+  const { body: queue } = await client.get(`https://raw.githubusercontent.com/${repository}/main/queue.json`);
   return queue;
 }
 
