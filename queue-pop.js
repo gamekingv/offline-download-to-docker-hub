@@ -1,18 +1,6 @@
-const fs = require('fs');
 const got = require('got');
 
-const [, , repository, token, action_name, dispatchType, list] = process.argv;
-
-const workflows = [
-  'baidu-download',
-  'decompression-donwload',
-  'offline-download'
-];
-const list_name = {
-  'baidu-download': 'baidu-list.txt',
-  'decompression-donwload': 'decompression-list.txt',
-  'offline-download': 'list.txt'
-};
+const [, , repository, token, dispatchToken] = process.argv;
 
 const client = got.extend({
   headers: {
@@ -50,42 +38,46 @@ async function saveQueue(filename, queue) {
   body.sha = file.sha;
 
   await client.put(configLink, {
-    headers,
+    headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
     body: JSON.stringify(body)
   });
 }
 
-async function workflowCheck() {
-  let in_progress_count = 0;
-  for (const workflow of workflows) {
-    const workflow_link = `https://api.github.com/repos/${repository}/actions/workflows/${workflow}.yml/runs`;
-    const { body } = await client.get(workflow_link, {
-      searchParams: {
-        per_page: 20,
-        status: 'in_progress'
-      }
-    });
-    if (typeof body.total_count === 'number') in_progress_count += body.total_count;
-  }
-  return in_progress_count;
+async function getQueue() {
+  const { body: queue } = await client.get(`https://raw.githubusercontent.com${repository}/main/queue.json`);
+  return queue;
 }
 
-async function addToQueue() {
-  const queue = JSON.parse(fs.readFileSync('queue.json')) || [];
-  const list = fs.readFileSync(list_name[action_name]).toString();
-  queue.push({
-    name: action_name,
-    inputs: { list }
+async function executeTask({ name, list }) {
+  const body = JSON.stringify({
+    ref: 'main',
+    inputs: {
+      type: 'queue-execute',
+      list
+    }
   });
-  await saveQueue('queue.json', JSON.stringify(queue, null, 2));
+  await client.post(`https://api.github.com/repos/${repository}/actions/workflows/${name}.yml/dispatches`, {
+    headers: {
+      'Content-Length': body.length,
+      'Authorization': `token ${dispatchToken}`
+    },
+    body,
+  }, function (error, response) {
+    if (error) return rej(error);
+    else res(response);
+  });
 }
 
 (async () => {
   try {
-    if (dispatchType === 'queue-execute') {
-      console.log('队列触发任务');
-      console.log('');
-      fs.writeFileSync(list_name[action_name], list);
+    const queue = await getQueue();
+    if (queue && queue.length > 0) {
+      const task = queue.pop();
+      await executeTask(task);
+      await saveQueue('queue.json', JSON.stringify(queue, null, 2));
+      console.log('已触发下一个队列任务');
+      console.log(`任务类型：${task.name}`);
+      console.log(`列表：${task.list}`);
     }
     else {
       const in_progress_count = await workflowCheck();
