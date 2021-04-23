@@ -47,11 +47,13 @@ jobs:
 
       # 清理已进行任务
       - name: Clear done task
+        id: clear
         run: |
+          echo "::set-output name=executed::true"
           node clear.js "${{ github.repository }}" "${{ github.token }}" "${{ secrets.TOKEN }}"
 
       # 执行队列剩余任务
       - name: Queue Pop
-        if: ${{ failure() }}
+        if: ${{ failure() && steps.clear.outputs.executed == 'true' }}
         run: |
           node queue-pop.js "${{ github.repository }}" "${{ github.token }}" "${{ secrets.TOKEN }}" 
