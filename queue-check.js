@@ -91,6 +91,7 @@ async function addToQueue() {
       const in_progress_count = await workflowCheck();
       if (in_progress_count > 1) {
         await addToQueue();
+        console.log('有任务正在进行，保存到任务队列');
         process.exit(1);
       }
     }
