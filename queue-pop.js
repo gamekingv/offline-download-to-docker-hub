@@ -74,7 +74,7 @@ async function executeTask({ name, list }) {
       await saveQueue('queue.json', JSON.stringify(queue, null, 2));
       console.log('已触发下一个队列任务');
       console.log(`任务类型：${task.name}`);
-      console.log(`列表：${task.list}`);
+      if (task.list) console.log(`列表：${task.list}`);
     }
     else console.log('队列中已无任务');
   }
