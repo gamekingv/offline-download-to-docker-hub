@@ -97,5 +97,6 @@ async function addToQueue() {
   }
   catch (error) {
     console.log(error);
+    process.exit(1);
   }
 })();

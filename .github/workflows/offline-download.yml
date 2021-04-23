@@ -26,7 +26,7 @@ jobs:
       # 检查任务队列
       - name: Queue Check
         run: |
-          node queue-check.js "${{ github.repository }}" "${{ secrets.TOKEN }}" "${{ github.action }}" "${{ github.event.inputs.type }}" "${{ github.event.inputs.list }}"
+          node queue-check.js "${{ github.repository }}" "${{ secrets.TOKEN }}" "${{ github.workflow }}" "${{ github.event.inputs.type }}" "${{ github.event.inputs.list }}"
 
       # 下载
       - name: Download
