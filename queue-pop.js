@@ -79,13 +79,7 @@ async function executeTask({ name, list }) {
       console.log(`任务类型：${task.name}`);
       console.log(`列表：${task.list}`);
     }
-    else {
-      const in_progress_count = await workflowCheck();
-      if (in_progress_count > 0) {
-        await addToQueue();
-        process.exit(1);
-      }
-    }
+    else console.log('队列中已无任务');
   }
   catch (error) {
     console.log(error);
