@@ -1,7 +1,7 @@
 const fs = require('fs');
 const got = require('got');
 
-const [, , repository, token, action_name, dispatchType, list] = process.argv;
+const [, , repository, token, action_name, dispatch_type, list_content] = process.argv;
 
 const workflows = [
   'baidu-download',
@@ -82,10 +82,10 @@ async function addToQueue() {
 
 (async () => {
   try {
-    if (dispatchType === 'queue-execute') {
+    if (dispatch_type === 'queue-execute') {
       console.log('队列触发任务');
       console.log('');
-      fs.writeFileSync(list_name[action_name], list);
+      fs.writeFileSync(list_name[action_name], list_content);
     }
     else {
       const in_progress_count = await workflowCheck();
