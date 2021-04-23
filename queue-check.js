@@ -1,7 +1,7 @@
 const fs = require('fs');
 const got = require('got');
 
-const [, , repository, token, action_name, dispatch_type, list_content] = process.argv;
+const [, , repository, token, action_name, run_id, dispatch_type, list_content] = process.argv;
 
 const workflows = [
   'baidu-download',
@@ -82,6 +82,15 @@ async function addToQueue() {
   await saveQueue('queue.json', JSON.stringify(queue, null, 2));
 }
 
+async function cancelWorkflow() {
+  await client.post(`https://api.github.com/repos/${repository}/actions/runs/${run_id}/cancel`, {
+    headers: {
+      'Accept': 'application/vnd.github.v3+json',
+      'Authorization': `token ${token}`
+    }
+  });
+}
+
 (async () => {
   try {
     if (dispatch_type === 'queue-execute') {
@@ -94,7 +103,8 @@ async function addToQueue() {
       if (in_progress_count > 1) {
         await addToQueue();
         console.log('有任务正在进行，保存到任务队列');
-        process.exit(1);
+        await cancelWorkflow();
+        await new Promise(res => setTimeout(() => res(), 60000));
       }
       else console.log('正常进行任务');
     }

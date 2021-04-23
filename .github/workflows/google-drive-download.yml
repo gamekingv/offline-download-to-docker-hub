@@ -32,7 +32,7 @@ jobs:
       # 检查任务队列
       - name: Queue Check
         run: |
-          node queue-check.js "${{ github.repository }}" "${{ github.token }}" "${{ github.workflow }}" "${{ github.event.inputs.type }}"
+          node queue-check.js "${{ github.repository }}" "${{ github.token }}" "${{ github.workflow }}" "${{ github.run_id }}" "${{ github.event.inputs.type }}"
 
       # 下载
       - name: Download
