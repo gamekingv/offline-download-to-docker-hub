@@ -61,7 +61,6 @@ async function executeTask({ name, list }) {
   await client.post(`https://api.github.com/repos/${repository}/actions/workflows/${name}.yml/dispatches`, {
     headers: {
       'Accept': 'application/vnd.github.v3+json',
-      'Content-Type': 'application/json',
       'Content-Length': body.length,
       'Authorization': `token ${dispatchToken}`
     },
