@@ -54,7 +54,7 @@ async function saveDownloadedList(filename, downloadedList) {
 function triggerNext() {
   return new Promise((res, rej) => {
     const body = JSON.stringify({ ref: 'main' });
-    request(`https://api.github.com/repos/${repository}/actions/workflows/download.yml/dispatches`, {
+    request(`https://api.github.com/repos/${repository}/actions/workflows/google-drive-download.yml/dispatches`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
