@@ -15,10 +15,10 @@
 ## 普通离线下载
 在list.txt添加下载链接即可，可以是Aria2支持的所有下载链接，下载完成后会自动上传。
 
-## google-drive-download
+## Google Drive下载
 ```
 node fetch.js "API_KEY"
 ```
 使用上面的命令生成下载链接列表，将生成的文件内容复制到google-drive-list.json后执行actions则可自动下载并上传。
 
-其中fetch.js中变量root_folder_id为需要遍历的文件夹id。API_KEY为Google Drive API密钥，需要到 [Google API Console](https://console.cloud.google.com/apis/dashboard) 的库中开通Google Drive API，并在凭据中生成API密钥。
+其中fetch-google-drive-list.js中变量root_folder_id为需要遍历的文件夹id。API_KEY为Google Drive API密钥，需要到 [Google API Console](https://console.cloud.google.com/apis/dashboard) 的库中开通Google Drive API，并在凭据中生成API密钥。
