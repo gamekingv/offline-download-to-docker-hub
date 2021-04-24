@@ -1,3 +1,4 @@
+const fs = require('fs');
 const got = require('got');
 
 const [, , repository, token, dispatchToken] = process.argv;
