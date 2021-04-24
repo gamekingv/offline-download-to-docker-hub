@@ -44,7 +44,8 @@ async function saveQueue(filename, queue) {
 }
 
 async function getQueue() {
-  const { body: queue } = await client.get(`https://github.com/${repository}/raw/main/queue.json`);
+  // const { body: queue } = await client.get(`https://github.com/${repository}/raw/main/queue.json`);
+  const queue = JSON.parse(fs.readFileSync('latest/queue.json'));
   return queue;
 }
 
