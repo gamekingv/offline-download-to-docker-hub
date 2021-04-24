@@ -49,6 +49,11 @@ jobs:
         run: |
           node upload.js "${{ secrets.URL }}" "${{ secrets.USERNAME }}" "${{ secrets.PASSWORD }}"
 
+      # 获取最新队列文件
+      - uses: actions/checkout@v2
+        with:
+          path: 'latest'
+
       # 执行队列剩余任务
       - name: Queue Pop
         run: |
