@@ -2,7 +2,7 @@ import os
 import json
 import gdown
 
-with open('./google-drive-list.json','r',encoding='utf8')as file_list:
+with open('./google-drive-list.json','r',encoding='utf8') as file_list:
   files = json.load(file_list)[:20]
   for file in files:
     os.makedirs(file['path'], exist_ok=True)
