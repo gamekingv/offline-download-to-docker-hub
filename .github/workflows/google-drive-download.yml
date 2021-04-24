@@ -52,6 +52,11 @@ jobs:
           echo "::set-output name=executed::true"
           node clear.js "${{ github.repository }}" "${{ github.token }}" "${{ secrets.TOKEN }}"
 
+      # 获取最新队列文件
+      - uses: actions/checkout@v2
+        with:
+          path: 'latest'
+
       # 执行队列剩余任务
       - name: Queue Pop
         if: ${{ failure() && steps.clear.outputs.executed == 'true' }}
