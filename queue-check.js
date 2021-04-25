@@ -11,7 +11,7 @@ const workflows = [
 ];
 const list_name = {
   'baidu-download': 'baidu-list.txt',
-  'decompression-donwload': 'decompression-list.txt',
+  'decompression-download': 'decompression-list.txt',
   'offline-download': 'list.txt'
 };
 
