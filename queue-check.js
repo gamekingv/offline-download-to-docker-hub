@@ -5,7 +5,7 @@ const [, , repository, token, action_name, run_id, dispatch_type, list_content] 
 
 const workflows = [
   'baidu-download',
-  'decompression-donwload',
+  'decompression-download',
   'offline-download',
   'google-drive-download'
 ];
