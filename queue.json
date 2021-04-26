@@ -1,1 +1,6 @@
-[]
+[
+  {
+    "name": "subtitle-download",
+    "list": "[\n  {\n    \"name\": \"[SubsPlease] Yakunara Mug Cup mo - 04 (1080p) [219A5819].zh-Hans.srt\",\n    \"path\": \"Offline/Anime_Offline/烧窑的话也要马克杯\",\n    \"url\": \"https://i0.hdslb.com/bfs/subtitle/bd497de8ce5f222f2b84996cefc37f806c809e4b.json\",\n    \"delay\": 0\n  },\n  {\n    \"name\": \"[SubsPlease] Hige wo Soru. Soshite Joshikousei wo Hirou. - 04 (1080p) [40EE74C0].zh-Hans.srt\",\n    \"path\": \"Offline/Anime_Offline/刮掉胡子的我与捡到的女高中生。\",\n    \"url\": \"https://i0.hdslb.com/bfs/subtitle/7ceca03b494ba3fbeee65cb4fed7374e055835c7.json\",\n    \"delay\": 0\n  }\n]"
+  }
+]
