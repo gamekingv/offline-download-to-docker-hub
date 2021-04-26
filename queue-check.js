@@ -3,13 +3,6 @@ const got = require('got');
 
 const [, , repository, token, action_name, run_id, dispatch_type, list_content] = process.argv;
 
-const workflows = [
-  'baidu-download',
-  'decompression-download',
-  'offline-download',
-  'google-drive-download',
-  'subtitle-download'
-];
 const list_name = {
   'baidu-download': 'baidu-list.txt',
   'decompression-download': 'decompression-list.txt',
@@ -59,18 +52,14 @@ async function saveQueue(filename, queue) {
 }
 
 async function workflowCheck() {
-  let in_progress_count = 0;
-  for (const workflow of workflows) {
-    const workflow_link = `https://api.github.com/repos/${repository}/actions/workflows/${workflow}.yml/runs`;
-    const { body } = await client.get(workflow_link, {
-      searchParams: {
-        per_page: 20,
-        status: 'in_progress'
-      }
-    });
-    if (typeof body.total_count === 'number') in_progress_count += body.total_count;
-  }
-  return in_progress_count;
+  const workflow_link = `https://api.github.com/repos/${repository}/actions/runs`;
+  const { body } = await client.get(workflow_link, {
+    searchParams: {
+      per_page: 20,
+      status: 'in_progress'
+    }
+  });
+  return body.total_count === 1 || body.workflow_runs.every(run => run.id >= run_id);
 }
 
 async function addToQueue() {
@@ -101,14 +90,14 @@ async function cancelWorkflow() {
       if (list_name[action_name]) fs.writeFileSync(list_name[action_name], list_content);
     }
     else {
-      const in_progress_count = await workflowCheck();
-      if (in_progress_count > 1) {
+      const idle = await workflowCheck();
+      if (idle) console.log('正常进行任务');
+      else {
         await addToQueue();
         console.log('有任务正在进行，保存到任务队列');
         await cancelWorkflow();
         await new Promise(res => setTimeout(() => res(), 60000));
       }
-      else console.log('正常进行任务');
     }
   }
   catch (error) {
