@@ -1,0 +1,58 @@
+name: subtitle-download
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'subtitles.json'
+  workflow_dispatch:
+    inputs:
+      type:
+        description: 'dispatch type'
+        required: false
+        default: ''
+      list:
+        description: 'download list'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      # 安装环境
+      - name: Install Aria2
+        run: |
+          sudo apt-get update
+          sudo apt-get install aria2
+          npm install
+          node fetchtracker.js
+
+      # 检查任务队列
+      - name: Queue Check
+        run: |
+          node queue-check.js "${{ github.repository }}" "${{ github.token }}" "${{ github.workflow }}" "${{ github.run_id }}" "${{ github.event.inputs.type }}" "${{ github.event.inputs.list }}"
+
+      # 获取字幕
+      - name: Fetch Subtitles
+        run: |
+          node subtitle-parser.js
+
+      # 上传
+      - name: Upload
+        run: |
+          node upload.js "${{ secrets.URL }}" "${{ secrets.USERNAME }}" "${{ secrets.PASSWORD }}"
+
+      # 获取最新队列文件
+      - name: Fetch Latest
+        run: |
+          git clone "https://github.com/${{ github.repository }}.git" latest
+
+      # 执行队列剩余任务
+      - name: Queue Pop
+        run: |
+          node queue-pop.js "${{ github.repository }}" "${{ github.token }}" "${{ secrets.TOKEN }}" 

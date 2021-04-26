@@ -7,12 +7,14 @@ const workflows = [
   'baidu-download',
   'decompression-download',
   'offline-download',
-  'google-drive-download'
+  'google-drive-download',
+  'subtitle-download'
 ];
 const list_name = {
   'baidu-download': 'baidu-list.txt',
   'decompression-download': 'decompression-list.txt',
-  'offline-download': 'list.txt'
+  'offline-download': 'list.txt',
+  'subtitle-download': 'subtitles.json'
 };
 
 const client = got.extend({
