@@ -10,6 +10,10 @@ on:
         description: 'download list'
         required: false
         default: ''
+      parent:
+        description: 'parent run id'
+        required: false
+        default: ''
 
 jobs:
   build:
@@ -32,34 +36,46 @@ jobs:
       # 检查任务队列
       - name: Queue Check
         run: |
-          node queue-check.js "${{ github.repository }}" "${{ github.token }}" "${{ github.workflow }}" "${{ github.run_id }}" "${{ github.event.inputs.type }}"
+          node queue-check.js
+        env:
+          QUEUE_TOKEN: ${{ github.token }}
+          QUEUE_DB_HOST: ${{ secrets.DB_HOST }}
+          QUEUE_DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          QUEUE_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
       # 下载
       - name: Download
         run: |
           python download.py
+          echo ""
           echo "下载完成"
 
       # 上传
       - name: Upload
         run: |
-          node upload.js "${{ secrets.URL }}" "${{ secrets.USERNAME }}" "${{ secrets.PASSWORD }}"
+          node upload.js
+        env:
+          QUEUE_DD_URL: ${{ secrets.URL }}
+          QUEUE_DD_USERNAME: ${{ secrets.USERNAME }}
+          QUEUE_DD_PASSWORD: ${{ secrets.PASSWORD }}
 
       # 清理已进行任务
       - name: Clear done task
         id: clear
         run: |
-          echo "::set-output name=executed::true"
-          node clear.js "${{ github.repository }}" "${{ github.token }}" "${{ secrets.TOKEN }}"
-
-      # 获取最新队列文件
-      - name: Fetch Latest
-        if: ${{ failure() && steps.clear.outputs.executed == 'true' }}
-        run: |
-          git clone "https://github.com/${{ github.repository }}.git" latest
+          node clear.js
+        env:
+          QUEUE_TOKEN: ${{ github.token }}
+          QUEUE_DISPATCH_TOKEN: ${{ secrets.TOKEN }}
 
       # 执行队列剩余任务
       - name: Queue Pop
-        if: ${{ failure() && steps.clear.outputs.executed == 'true' }}
+        if: ${{ failure() }}
         run: |
-          node queue-pop.js "${{ github.repository }}" "${{ github.token }}" "${{ secrets.TOKEN }}" 
+          node queue-pop.js
+        env:
+          QUEUE_TOKEN: ${{ github.token }}
+          QUEUE_DISPATCH_TOKEN: ${{ secrets.TOKEN }}
+          QUEUE_DB_HOST: ${{ secrets.DB_HOST }}
+          QUEUE_DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          QUEUE_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}

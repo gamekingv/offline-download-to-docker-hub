@@ -3,7 +3,12 @@ const fs = require('fs');
 const crypto = require('crypto');
 const request = require('request');
 
-const [, , repositoryUrl, username, password, downloadType] = process.argv;
+const {
+  QUEUE_DD_URL: repositoryUrl,
+  QUEUE_DD_USERNAME: username,
+  QUEUE_DD_PASSWORD: password,
+  GITHUB_WORKFLOW: workflow_name
+} = process.env;
 
 const [server, namespace, image] = repositoryUrl.split('/');
 const secret = new Buffer.from(`${username}:${password}`).toString('base64');
@@ -393,7 +398,7 @@ function mapDirectory(root) {
 
 (async () => {
   const files = mapDirectory('Offline');
-  if (downloadType === 'decompression') ignoreFilters.push(/\.zip$/, /\.rar$/)
+  if (workflow_name === 'decompression-download') ignoreFilters.push(/\.zip$/, /\.rar$/);
   for (const file of files) {
     if (ignoreFilters.some(filter => file.match(filter))) {
       console.log('跳过文件：' + file);

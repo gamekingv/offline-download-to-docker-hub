@@ -1,7 +1,11 @@
 const request = require('request');
 const fs = require('fs');
 
-const [, , repository, token, dispatchToken] = process.argv;
+const {
+  GITHUB_REPOSITORY: repository,
+  QUEUE_TOKEN: token,
+  QUEUE_DISPATCH_TOKEN: dispatchToken
+} = process.env;
 
 async function saveDownloadedList(filename, downloadedList) {
   let content = Buffer.from(downloadedList).toString('base64'),

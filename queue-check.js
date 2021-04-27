@@ -22,8 +22,6 @@ const db_name = 'github_action';
 const collection_name = 'queue';
 const uri = `mongodb+srv://${db_username}:${db_password}@${db_host}/${db_name}?retryWrites=true&w=majority`;
 
-
-
 const list_name = {
   'baidu-download': 'baidu-list.txt',
   'decompression-download': 'decompression-list.txt',
@@ -39,39 +37,6 @@ const client = got.extend({
   responseType: 'json'
 });
 
-// async function saveQueue(filename, queue) {
-//   const content = Buffer.from(queue).toString('base64');
-//   const timeStamp = Date.now();
-//   const commitLink = `https://api.github.com/repos/${repository}/commits`;
-//   const configLink = `https://api.github.com/repos/${repository}/contents/${filename}`;
-//   const body = {
-//     message: `更新于${new Date(timeStamp).toLocaleString()}`,
-//     content
-//   };
-//   const headers = {
-//     'Authorization': `token ${token}`
-//   };
-
-//   const response = await client.get(commitLink, {
-//     headers
-//   });
-
-//   tree_sha = response.body[0].commit.tree.sha;
-
-//   const treeResponse = await client.get(
-//     `https://api.github.com/repos/${repository}/git/trees/${tree_sha}`, {
-//     headers
-//   });
-
-//   const file = treeResponse.body.tree.find(file => file.path === filename);
-//   body.sha = file.sha;
-
-//   await client.put(configLink, {
-//     headers,
-//     body: JSON.stringify(body)
-//   });
-// }
-
 async function workflowCheck() {
   const workflow_link = `https://api.github.com/repos/${repository}/actions/runs`;
   const { body } = await client.get(workflow_link, {
@@ -84,14 +49,8 @@ async function workflowCheck() {
 }
 
 async function addToQueue() {
-  // const queue = JSON.parse(fs.readFileSync('queue.json')) || [];
   let list = '';
   if (list_name[workflow_name]) list = fs.readFileSync(list_name[workflow_name]).toString();
-  // queue.push({
-  //   name: workflow_name,
-  //   list
-  // });
-  // await saveQueue('queue.json', JSON.stringify(queue, null, 2));
   const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
   await client.connect();
   const collection = client.db(db_name).collection(collection_name);
