@@ -1,10 +1,16 @@
 const fs = require('fs');
 const got = require('got');
+const MongoClient = require('mongodb').MongoClient;
 
-const [, , repository, token, action_name, run_id, dispatch_type, list_content] = process.argv;
-
-console.log(process.env);
-process.exit(1);
+const [, , list_content] = process.argv;
+const {
+  GITHUB_REPOSITORY: repository,
+  QUEUE_TOKEN: token,
+  GITHUB_WORKFLOW: workflow_name,
+  GITHUB_RUN_ID: run_id,
+  QUEUE_PARENT_RUN_ID: parent_run_id,
+  QUEUE_DISPATCH_TYPE: dispatch_type
+} = process.env;
 
 const list_name = {
   'baidu-download': 'baidu-list.txt',
@@ -62,15 +68,15 @@ async function workflowCheck() {
       status: 'in_progress'
     }
   });
-  return body.total_count === 1 || body.workflow_runs.every(run => run.id >= run_id);
+  return body.workflow_runs.filter(run => run.id !== parent_run_id).every(run => run.id >= run_id);
 }
 
 async function addToQueue() {
   const queue = JSON.parse(fs.readFileSync('queue.json')) || [];
   let list = '';
-  if (list_name[action_name]) list = fs.readFileSync(list_name[action_name]).toString();
+  if (list_name[workflow_name]) list = fs.readFileSync(list_name[workflow_name]).toString();
   queue.push({
-    name: action_name,
+    name: workflow_name,
     list
   });
   await saveQueue('queue.json', JSON.stringify(queue, null, 2));
@@ -89,19 +95,17 @@ async function cancelWorkflow() {
   try {
     if (dispatch_type === 'queue-execute') {
       console.log('队列触发任务');
-      console.log('');
-      if (list_name[action_name]) fs.writeFileSync(list_name[action_name], list_content);
+      if (list_name[workflow_name]) fs.writeFileSync(list_name[workflow_name], list_content);
     }
+    const idle = await workflowCheck();
+    if (idle) console.log('正常进行任务');
     else {
-      const idle = await workflowCheck();
-      if (idle) console.log('正常进行任务');
-      else {
-        await addToQueue();
-        console.log('有任务正在进行，保存到任务队列');
-        await cancelWorkflow();
-        await new Promise(res => setTimeout(() => res(), 60000));
-      }
+      await addToQueue();
+      console.log('有任务正在进行，保存到任务队列');
+      await cancelWorkflow();
+      await new Promise(res => setTimeout(() => res(), 60000));
     }
+
   }
   catch (error) {
     console.log(error);
