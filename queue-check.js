@@ -12,6 +12,8 @@ const {
   QUEUE_DISPATCH_TYPE: dispatch_type
 } = process.env;
 
+process.exit(1);
+
 const list_name = {
   'baidu-download': 'baidu-list.txt',
   'decompression-download': 'decompression-list.txt',
