@@ -39,8 +39,8 @@ jobs:
       # 检查任务队列
       - name: Queue Check
         run: |
-          node queue-check.js '${{ github.event.inputs.list }}'
           cat "$GITHUB_EVENT_PATH"
+          node queue-check.js '${{ github.event.inputs.list }}'
         env:
           QUEUE_TOKEN: ${{ github.token }}
           QUEUE_PARENT_RUN_ID: ${{ github.event.inputs.parent }}
