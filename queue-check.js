@@ -3,6 +3,9 @@ const got = require('got');
 
 const [, , repository, token, action_name, run_id, dispatch_type, list_content] = process.argv;
 
+console.log(process.env);
+process.exit(1);
+
 const list_name = {
   'baidu-download': 'baidu-list.txt',
   'decompression-download': 'decompression-list.txt',
