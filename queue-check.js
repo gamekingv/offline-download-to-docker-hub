@@ -81,7 +81,6 @@ async function cancelWorkflow() {
       await cancelWorkflow();
       await new Promise(res => setTimeout(() => res(), 60000));
     }
-
   }
   catch (error) {
     console.log(error);
