@@ -14,6 +14,10 @@ on:
         description: 'download list'
         required: false
         default: ''
+      parent:
+        description: 'parent run id'
+        required: false
+        default: ''
 
 jobs:
   build:
@@ -35,7 +39,7 @@ jobs:
       # 检查任务队列
       - name: Queue Check
         run: |
-          node queue-check.js "${{ github.repository }}" "${{ github.token }}" "${{ github.workflow }}" "${{ github.run_id }}" "${{ github.event.inputs.type }}" '${{ github.event.inputs.list }}'
+          node queue-check.js "${{ github.repository }}" "${{ github.token }}" "${{ github.workflow }}" "${{ github.run_id }}" "${{ github.event.inputs.parent }}" "${{ github.event.inputs.type }}" '${{ github.event.inputs.list }}'
 
       # 获取字幕
       - name: Fetch Subtitles

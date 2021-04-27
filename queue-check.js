@@ -2,16 +2,29 @@ const fs = require('fs');
 const got = require('got');
 const MongoClient = require('mongodb').MongoClient;
 
-const [, , list_content] = process.argv;
 const {
   GITHUB_REPOSITORY: repository,
   QUEUE_TOKEN: token,
   GITHUB_WORKFLOW: workflow_name,
   GITHUB_RUN_ID: run_id,
-  QUEUE_PARENT_RUN_ID: parent_run_id,
-  QUEUE_DISPATCH_TYPE: dispatch_type
+  GITHUB_EVENT_PATH
 } = process.env;
+const event = JSON.parse(fs.readFileSync(GITHUB_EVENT_PATH));
+const {
+  type: dispatch_type,
+  parent: parent_run_id,
+  list: list_content
+} = event.inputs;
 
+console.log({
+  repository,
+  token,
+  workflow_name,
+  run_id,
+  dispatch_type,
+  parent_run_id,
+  list_content
+});
 process.exit(1);
 
 const list_name = {
