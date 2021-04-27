@@ -14,9 +14,9 @@ const {
 } = process.env;
 const event = JSON.parse(fs.readFileSync(GITHUB_EVENT_PATH));
 const {
-  type: dispatch_type,
-  parent: parent_run_id,
-  list: list_content
+  type: dispatch_type = '',
+  parent: parent_run_id = '',
+  list: list_content = ''
 } = event.inputs;
 const db_name = 'github_action';
 const collection_name = 'queue';

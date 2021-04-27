@@ -1,11 +1,11 @@
-const fs = require('fs');
+// const fs = require('fs');
 const got = require('got');
 const MongoClient = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID;
 
 const {
   GITHUB_REPOSITORY: repository,
-  QUEUE_TOKEN: token,
+  // QUEUE_TOKEN: token,
   QUEUE_DISPATCH_TOKEN: dispatchToken,
   QUEUE_DB_HOST: db_host,
   QUEUE_DB_USERNAME: db_username,
