@@ -13,11 +13,9 @@ const {
   GITHUB_EVENT_PATH
 } = process.env;
 const event = JSON.parse(fs.readFileSync(GITHUB_EVENT_PATH));
-const {
-  type: dispatch_type = '',
-  parent: parent_run_id = '',
-  list: list_content = ''
-} = event.inputs;
+const dispatch_type = event.inputs.type;
+const parent_run_id = event.inputs.parent;
+const list_content = event.inputs.list;
 const db_name = 'github_action';
 const collection_name = 'queue';
 const uri = `mongodb+srv://${db_username}:${db_password}@${db_host}/${db_name}?retryWrites=true&w=majority`;
