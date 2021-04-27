@@ -5,6 +5,7 @@ const ObjectID = require('mongodb').ObjectID;
 const {
   GITHUB_REPOSITORY: repository,
   QUEUE_DISPATCH_TOKEN: dispatchToken,
+  GITHUB_RUN_ID: run_id,
   QUEUE_DB_HOST: db_host,
   QUEUE_DB_USERNAME: db_username,
   QUEUE_DB_PASSWORD: db_password
@@ -36,7 +37,8 @@ async function executeTask({ name, list }) {
     ref: 'main',
     inputs: {
       type: 'queue-execute',
-      list
+      list,
+      parent: run_id
     }
   });
   await client.post(`https://api.github.com/repos/${repository}/actions/workflows/${name}.yml/dispatches`, {
