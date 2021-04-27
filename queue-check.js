@@ -7,6 +7,9 @@ const {
   QUEUE_TOKEN: token,
   GITHUB_WORKFLOW: workflow_name,
   GITHUB_RUN_ID: run_id,
+  QUEUE_DB_HOST: db_host,
+  QUEUE_DB_USERNAME: db_username,
+  QUEUE_DB_PASSWORD: db_password,
   GITHUB_EVENT_PATH
 } = process.env;
 const event = JSON.parse(fs.readFileSync(GITHUB_EVENT_PATH));
@@ -15,17 +18,11 @@ const {
   parent: parent_run_id,
   list: list_content
 } = event.inputs;
+const db_name = 'github_action';
+const collection_name = 'queue';
+const uri = `mongodb+srv://${db_username}:${db_password}@${db_host}/${db_name}?retryWrites=true&w=majority`;
 
-console.log({
-  repository,
-  token,
-  workflow_name,
-  run_id,
-  dispatch_type,
-  parent_run_id,
-  list_content
-});
-process.exit(1);
+
 
 const list_name = {
   'baidu-download': 'baidu-list.txt',
@@ -42,38 +39,38 @@ const client = got.extend({
   responseType: 'json'
 });
 
-async function saveQueue(filename, queue) {
-  const content = Buffer.from(queue).toString('base64');
-  const timeStamp = Date.now();
-  const commitLink = `https://api.github.com/repos/${repository}/commits`;
-  const configLink = `https://api.github.com/repos/${repository}/contents/${filename}`;
-  const body = {
-    message: `更新于${new Date(timeStamp).toLocaleString()}`,
-    content
-  };
-  const headers = {
-    'Authorization': `token ${token}`
-  };
+// async function saveQueue(filename, queue) {
+//   const content = Buffer.from(queue).toString('base64');
+//   const timeStamp = Date.now();
+//   const commitLink = `https://api.github.com/repos/${repository}/commits`;
+//   const configLink = `https://api.github.com/repos/${repository}/contents/${filename}`;
+//   const body = {
+//     message: `更新于${new Date(timeStamp).toLocaleString()}`,
+//     content
+//   };
+//   const headers = {
+//     'Authorization': `token ${token}`
+//   };
 
-  const response = await client.get(commitLink, {
-    headers
-  });
+//   const response = await client.get(commitLink, {
+//     headers
+//   });
 
-  tree_sha = response.body[0].commit.tree.sha;
+//   tree_sha = response.body[0].commit.tree.sha;
 
-  const treeResponse = await client.get(
-    `https://api.github.com/repos/${repository}/git/trees/${tree_sha}`, {
-    headers
-  });
+//   const treeResponse = await client.get(
+//     `https://api.github.com/repos/${repository}/git/trees/${tree_sha}`, {
+//     headers
+//   });
 
-  const file = treeResponse.body.tree.find(file => file.path === filename);
-  body.sha = file.sha;
+//   const file = treeResponse.body.tree.find(file => file.path === filename);
+//   body.sha = file.sha;
 
-  await client.put(configLink, {
-    headers,
-    body: JSON.stringify(body)
-  });
-}
+//   await client.put(configLink, {
+//     headers,
+//     body: JSON.stringify(body)
+//   });
+// }
 
 async function workflowCheck() {
   const workflow_link = `https://api.github.com/repos/${repository}/actions/runs`;
@@ -87,14 +84,19 @@ async function workflowCheck() {
 }
 
 async function addToQueue() {
-  const queue = JSON.parse(fs.readFileSync('queue.json')) || [];
+  // const queue = JSON.parse(fs.readFileSync('queue.json')) || [];
   let list = '';
   if (list_name[workflow_name]) list = fs.readFileSync(list_name[workflow_name]).toString();
-  queue.push({
-    name: workflow_name,
-    list
-  });
-  await saveQueue('queue.json', JSON.stringify(queue, null, 2));
+  // queue.push({
+  //   name: workflow_name,
+  //   list
+  // });
+  // await saveQueue('queue.json', JSON.stringify(queue, null, 2));
+  const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+  await client.connect();
+  const collection = client.db(db_name).collection(collection_name);
+  await collection.insertOne({ name: workflow_name, list });
+  await client.close();
 }
 
 async function cancelWorkflow() {
