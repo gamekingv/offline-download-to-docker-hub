@@ -26,5 +26,24 @@
     "got": "^11.8.2",
     "mongodb": "^3.6.6",
     "request": "^2.88.2"
+  },
+  "eslintConfig": {
+    "env": {
+      "node": true
+    },
+    "parser": "babel-eslint",
+    "parserOptions": {
+      "ecmaVersion": 6,
+      "sourceType": "module"
+    },
+    "rules": {
+      "semi": "warn",
+      "quotes": [
+        "warn",
+        "single"
+      ],
+      "no-var": "error",
+      "no-unused-vars": "warn"
+    }
   }
 }
