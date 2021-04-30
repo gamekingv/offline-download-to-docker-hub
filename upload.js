@@ -397,6 +397,7 @@ function mapDirectory(root) {
 }
 
 (async () => {
+  if(!fs.existsSync('Offline')) return console.log('无文件需要上传');
   const files = mapDirectory('Offline');
   if (workflow_name === 'decompression-download') ignoreFilters.push(/\.zip$/, /\.rar$/);
   for (const file of files) {
