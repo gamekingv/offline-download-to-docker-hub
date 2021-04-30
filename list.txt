@@ -1,2 +1,2 @@
-http://dl.dmhy.org/2012/06/10/41a9d3bbf87290e8730cc204a24df3a4bb1bdc68.torrent
-  select-file=5,7
+http://dl.dmhy.org/2019/03/02/a80ad118a5b528ab81ee8f2864f906311ddc29a4.torrent
+  select-file=1-35,46-78
