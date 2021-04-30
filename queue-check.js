@@ -45,7 +45,7 @@ async function workflowCheck() {
       status: 'in_progress'
     }
   });
-  return body.workflow_runs.filter(run => run.id !== parent_run_id).every(run => run.id >= run_id);
+  return body.workflow_runs.filter(run => `${run.id}` !== `${parent_run_id}`).every(run => run.id >= run_id);
 }
 
 async function addToQueue() {
