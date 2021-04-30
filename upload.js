@@ -22,7 +22,8 @@ const repository = {
 
 const ignoreFilters = [
   '_____padding_file',
-  /\.torrent$/
+  /\.torrent$/,
+  /\.aria2$/
 ];
 
 const preset = {
