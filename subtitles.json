@@ -1,8 +1,20 @@
 [
   {
-    "name": "[SubsPlease] Subarashiki Kono Sekai The Animation - 04 (1080p) [6E92EF14].zh-Hans.srt",
-    "path": "Offline/Anime_Offline/美丽新世界 The Animation",
-    "url": "https://i0.hdslb.com/bfs/subtitle/06bf258f4822677230abb023b5aad259a08d9acd.json",
-    "delay": 7.05
+    "name": "[SubsPlease] SSSS.Dynazenon - 03 (1080p) [37DC2C22].zh-Hans.srt",
+    "path": "Offline/Anime_Offline/SSSS.Dynazenon",
+    "url": "https://i0.hdslb.com/bfs/subtitle/e6d5d8f88932b22bffdd3bf933c26c7472b8c65d.json",
+    "delay": 6.05
+  },
+  {
+    "name": "[SubsPlease] SSSS.Dynazenon - 04 (1080p) [873E6A1D].zh-Hans.srt",
+    "path": "Offline/Anime_Offline/SSSS.Dynazenon",
+    "url": "https://i0.hdslb.com/bfs/subtitle/0c5eec6ae09309dfb91017071c4bf44b5a42e736.json",
+    "delay": 6.05
+  },
+  {
+    "name": "[SubsPlease] SSSS.Dynazenon - 05 (1080p) [D7D2321C].zh-Hans.srt",
+    "path": "Offline/Anime_Offline/SSSS.Dynazenon",
+    "url": "https://i0.hdslb.com/bfs/subtitle/e2a59d13012760a042cf3b0cc6e92b19d3c781c8.json",
+    "delay": 6.05
   }
 ]
