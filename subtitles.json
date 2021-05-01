@@ -1,8 +1,14 @@
 [
   {
-    "name": "[SubsPlease] Slime Taoshite 300-nen, Shiranai Uchi ni Level Max ni Nattemashita - 04 (1080p) [A22EDDE7].zh-Hans.srt",
-    "path": "Offline/Anime_Offline/打了300年的史莱姆 不知不觉就练到了满级",
-    "url": "https://i0.hdslb.com/bfs/subtitle/912ec0c200153e2c41e3430d2068fb4fba68a516.json",
+    "name": "[SubsPlease] 86 - Eighty Six - 04 (1080p) [B18E73F6].zh-Hans.srt",
+    "path": "Offline/Anime_Offline/86－不存在的战区－",
+    "url": "https://i0.hdslb.com/bfs/subtitle/4313c3a2fb6c34ccf81afd065811a51b0c390349.json",
     "delay": 0
+  },
+  {
+    "name": "[SubsPlease] Battle Athletess Daiundoukai ReSTART! - 04 (1080p) [9D4EB25E].zh-Hans.srt",
+    "path": "Offline/Anime_Offline/大运动会 ReSTART！",
+    "url": "https://i0.hdslb.com/bfs/subtitle/4c7774c2c301a797e2cca951b2f8ccf0197dadc8.json",
+    "delay": 7.15
   }
 ]
