@@ -1,2 +1,2 @@
-https://18comic.vip/download_zip/252966?md5=uJU6pZcdrkHqla9sP_Z7Bw&expires=1619974565&aid=252966
+https://ccrhk-1253687700.cos.ap-hongkong.myqcloud.com/docker%2Fregistry%2Fv2%2Fblobs%2Fsha256%2F39%2F39f04409434a1b85ce50b522a5c0d58e1ddda9511ab14f596840a29a76f8b3d0%2Fdata?q-sign-algorithm=sha1&q-ak=AKIDQRmsg7xgYDfqkOJGXWG7vqXy8H9VKR0H&q-sign-time=1619974407%3B1619975607&q-key-time=1619974407%3B1619975607&q-header-list=host&q-url-param-list=&q-signature=86710c75a8edcbd18ace41e079eb89c0378ae1bb
   out=113.zip
