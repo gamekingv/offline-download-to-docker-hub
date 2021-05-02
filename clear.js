@@ -3,6 +3,7 @@ const fs = require('fs');
 
 const {
   GITHUB_REPOSITORY: repository,
+  GITHUB_RUN_ID: run_id,
   QUEUE_TOKEN: token,
   QUEUE_DISPATCH_TOKEN: dispatchToken
 } = process.env;
@@ -57,7 +58,12 @@ async function saveDownloadedList(filename, downloadedList) {
 
 function triggerNext() {
   return new Promise((res, rej) => {
-    const body = JSON.stringify({ ref: 'main' });
+    const body = JSON.stringify({
+      ref: 'main',
+      inputs: {
+        parent: run_id
+      }
+    });
     request(`https://api.github.com/repos/${repository}/actions/workflows/google-drive-download.yml/dispatches`, {
       method: 'POST',
       headers: {
