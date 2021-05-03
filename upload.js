@@ -427,7 +427,7 @@ function mapDirectory(root) {
       await add([{
         paths: file.split('/'),
         item: {
-          name: filename,
+          name: file.split('/').pop(),
           type: 'file',
           digest,
           size
