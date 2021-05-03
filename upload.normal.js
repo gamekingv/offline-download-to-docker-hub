@@ -2,24 +2,13 @@ const axios = require('axios');
 const fs = require('fs');
 const crypto = require('crypto');
 const request = require('request');
-const MongoClient = require('mongodb').MongoClient;
 
 const {
   QUEUE_DD_URL: repositoryUrl,
   QUEUE_DD_USERNAME: username,
   QUEUE_DD_PASSWORD: password,
-  GITHUB_WORKFLOW: workflow_name,
-  QUEUE_DB_HOST: db_host,
-  QUEUE_DB_USERNAME: db_username,
-  QUEUE_DB_PASSWORD: db_password
+  GITHUB_WORKFLOW: workflow_name
 } = process.env;
-
-
-const db_name = 'docker_drive';
-const uri = `mongodb+srv://${db_username}:${db_password}@${db_host}/${db_name}?retryWrites=true&w=majority`;
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-const collection_name = repositoryUrl;
-let collection;
 
 const [server, namespace, image] = repositoryUrl.split('/');
 const secret = new Buffer.from(`${username}:${password}`).toString('base64');
@@ -239,14 +228,107 @@ async function getManifests() {
     throw error;
   }
 }
+function parseConfig(config) {
+  let list;
+  if (config.fileItems) {
+    const cacheRoot = { name: 'root', type: 'folder', files: [], id: Symbol() };
+    config.fileItems.forEach(({ name: pathString, size, digest, uploadTime }) => {
+      if (!uploadTime) uploadTime = Date.now();
+      const path = pathString.substr(1).split('/');
+      const type = digest ? 'file' : 'folder';
+      let filePointer = cacheRoot;
+      const id = Symbol();
+      for (let i = 0; i < path.length - 1; i++) {
+        const nextPointer = filePointer.files.find(e => e.name === path[i]);
+        const id = Symbol();
+        if (nextPointer) filePointer = nextPointer;
+        else {
+          const item = { name: path[i], type: 'folder', files: [], id };
+          if (!item.uploadTime || item.uploadTime < uploadTime) item.uploadTime = uploadTime;
+          filePointer.files.push(item);
+          filePointer = item;
+        }
+      }
+      if (type === 'folder') filePointer.files.push({ name: path[path.length - 1], type, files: [], id });
+      else filePointer.files.push({ name: path[path.length - 1], type, size, digest, uploadTime, id });
+    });
+    list = cacheRoot.files;
+  }
+  else if (config.files) {
+    const addID = (files) => {
+      files.forEach(file => {
+        file.id = Symbol();
+        if (file.files) addID(file.files);
+      });
+    };
+    addID(config.files);
+    list = config.files;
+  }
+  else throw '加载配置文件失败';
+  return list;
+}
 
-async function upload(path, digest, size, retryCount = 0) {
+function getPath(pathString, files) {
+  const cacheRoot = { name: 'root', type: 'folder', files, id: Symbol() };
+  const path = pathString.split('/').map(e => e = { name: e });
+  path.unshift('');
+  path.pop();
+  let filePointer = cacheRoot;
+  path.slice(1).forEach(pathNode => {
+    let nextPointer = filePointer.files.find(e => e.name === pathNode.name);
+    if (!nextPointer) {
+      nextPointer = { name: pathNode.name, type: 'folder', id: Symbol(), files: [], uploadTime: Date.now() };
+      filePointer.files.push(nextPointer);
+    }
+    else if (nextPointer.type !== 'folder') {
+      let i = 1;
+      while (filePointer.files.some(e => e.name === `${pathNode.name} (${i})`)) i++;
+      nextPointer = { name: `${pathNode.name} (${i})`, type: 'folder', id: Symbol(), files: [], uploadTime: Date.now() };
+      filePointer.files.push(nextPointer);
+    }
+    filePointer = nextPointer;
+  });
+  return filePointer.files;
+}
+
+async function upload(path, digest, retryCount = 0) {
   if (retryCount === 0) console.log('开始上传文件');
   const start = Date.now();
   try {
-    await uploadFile(path, digest, size);
-    console.log('文件上传完成');
-    console.log('上传用时：' + timeFormatter(Date.now() - start));
+    const { layers: testLayers } = await getManifests();
+    const size = fs.statSync(path).size;
+    let filename = path.split('/').pop();
+    if (testLayers.some(e => e.digest === digest)) console.log('文件已存在');
+    else {
+      await uploadFile(path, digest, size);
+      console.log('文件上传完成');
+      console.log('上传用时：' + timeFormatter(Date.now() - start));
+    }
+    console.log('开始上传配置');
+    const { config, layers } = await getManifests();
+    const files = parseConfig(config);
+    const folder = getPath(path, files);
+    if (folder.some(e => e.name === filename)) {
+      if (layers.some(e => e.digest === digest)) {
+        console.log('未更改配置文件');
+        return;
+      }
+      let i = 1;
+      let [, name, ext] = filename.match(/(.*)(\.[^.]*)$/);
+      if (!name) {
+        name = filename;
+        ext = '';
+      }
+      while (folder.some(e => e.name === `${name} (${i})${ext}`)) {
+        i++;
+      }
+      filename = `${name} (${i})${ext}`;
+    }
+    folder.push({ name: filename, digest, size, type: 'file', uploadTime: Date.now(), id: Symbol() });
+    if (!layers.some(e => e.digest === digest))
+      layers.push({ mediaType: 'application/vnd.docker.image.rootfs.diff.tar.gzip', digest, size });
+    await commit({ files, layers });
+    console.log('配置上传完成');
   }
   catch (error) {
     console.log(path + ' 上传出错：');
@@ -257,92 +339,9 @@ async function upload(path, digest, size, retryCount = 0) {
     if (retryCount < 3) {
       retryCount++;
       console.log(`开始第 ${retryCount} 次重试上传`);
-      await upload(path, digest, size, retryCount);
+      await upload(path, digest, retryCount);
     }
   }
-}
-
-async function add(paths, item) {
-  const timestamp = Date.now();
-  const id = await paths.reduce(async (parent_id, path) => {
-    const { value } = await collection.findOneAndUpdate({
-      name: path,
-      parent: await parent_id
-    }, {
-      $set: {
-        uploadTime: timestamp,
-        type: 'folder',
-      }
-    }, {
-      projection: {
-        _id: 1
-      },
-      upsert: true,
-      returnOriginal: false
-    });
-    return value._id;
-  }, null);
-  if (item.type === 'folder') {
-    await collection.findOneAndUpdate({
-      name: item.name,
-      parent: id
-    }, {
-      $set: {
-        uploadTime: timestamp,
-        type: 'folder',
-      }
-    }, {
-      upsert: true
-    });
-  }
-  else {
-    if (await collection.countDocuments({ name: item.name, parent: id, digest: item.digest }) > 0) return;
-    let final_name = item.name, index = 0;
-    let [, name, ext] = item.name.match(/(.*)(\.[^.]*)$/) || [];
-    if (!name) {
-      name = item.name;
-      ext = '';
-    }
-    while (await collection.countDocuments({ name: final_name, parent: id }) > 0) {
-      if (await collection.countDocuments({ name: final_name, parent: id, digest: item.digest }) > 0) return;
-      final_name = `${name} (${++index})${ext}`;
-    }
-    await collection.insertOne(Object.assign(item, { name: final_name, parent: id, uploadTime: timestamp }));
-  }
-}
-
-function parse(array) {
-  const mark = {};
-  const root = [];
-  array.forEach(item => {
-    mark[item._id] = item;
-    item.id = Symbol();
-    if (item.type === 'folder') item.files = [];
-  });
-  array.forEach(item => {
-    if (item.parent === null) root.push(item);
-    else mark[item.parent].files.push(item);
-    delete item.parent;
-  });
-  const files = new Set();
-  array.forEach(item => item.type === 'file' ? files.add(`${item.digest}|${item.size}`) : '');
-  const layers = Array.from(files).map(file => {
-    const [digest, size] = file.split('|');
-    return {
-      mediaType: 'application/vnd.docker.image.rootfs.diff.tar.gzip',
-      digest, size: Number(size)
-    };
-  });
-  return { files: root, layers };
-}
-
-async function synchronize() {
-  console.log('');
-  console.log('开始同步数据库配置到docker');
-  const array = await collection.find().toArray();
-  const config = parse(array);
-  await commit(config);
-  console.log('同步数据库配置成功');
 }
 
 function sizeFormatter(fileSize) {
@@ -399,12 +398,8 @@ function mapDirectory(root) {
 }
 
 (async () => {
-  if (!fs.existsSync('Offline')) return console.log('无文件需要上传');
+  if(!fs.existsSync('Offline')) return console.log('无文件需要上传');
   const files = mapDirectory('Offline');
-  await client.connect();
-  collection = client.db(db_name).collection(collection_name);
-  const { layers } = await getManifests();
-  let uploadedCount = 0;
   if (workflow_name === 'decompression-download') ignoreFilters.push(/\.zip$/, /\.rar$/);
   for (const file of files) {
     if (ignoreFilters.some(filter => file.match(filter))) {
@@ -421,39 +416,12 @@ function mapDirectory(root) {
       const size = fs.statSync(file).size;
       console.log(`文件大小：${sizeFormatter(size)}（${size}）`);
       if (digest === 'sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855') throw '空文件';
-      if (layers.some(e => e.digest === digest)) console.log('文件已存在');
-      else await upload(file, digest, size);
-      console.log('开始上传配置到数据库');
-      await add([{
-        paths: path.split('/'),
-        item: {
-          name: filename,
-          type: 'file',
-          digest,
-          size
-        }
-      }]);
-      console.log('上传完成');
+      await upload(file, digest);
       console.log('总用时：' + timeFormatter(Date.now() - start));
-      layers.push({
-        digest,
-        mediaType: 'application/vnd.docker.image.rootfs.diff.tar.gzip',
-        size
-      });
-      uploadedCount++;
-      if (uploadedCount >= 50) {
-        await synchronize();
-        uploadedCount = 0;
-      }
     }
     catch (e) {
       console.log(e.toString());
     }
     console.log('');
   }
-  if (uploadedCount > 0) {
-    await synchronize();
-    uploadedCount = 0;
-  }
-  client.connect();
 })();
