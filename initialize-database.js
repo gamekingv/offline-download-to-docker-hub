@@ -226,6 +226,7 @@ async function treeToArray(items, parent) {
   for (const item of items) {
     const files = item.files;
     delete item.files;
+    delete item._id;
     item.parent = parent;
     const { insertedId: id } = await collection.insertOne(item);
     if (files) await treeToArray(files, id);
