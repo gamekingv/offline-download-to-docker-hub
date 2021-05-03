@@ -1,4 +1,6 @@
 const MongoClient = require('mongodb').MongoClient;
+const axios = require('axios');
+const crypto = require('crypto');
 
 const {
   QUEUE_DD_URL: repositoryUrl,
