@@ -243,15 +243,15 @@ async function initialize(files) {
   try {
     await client.connect();
     console.log('获取docker配置');
-    const { config: files } = await getManifests();
+    const { config } = await getManifests();
     collection = client.db(db_name).collection(collection_name);
     console.log('同步docker配置到数据库');
-    await initialize(files);
+    await initialize(config.files);
     console.log('获取数据库配置');
     const array = await collection.find().toArray();
     console.log('同步数据库配置到docker');
-    const config = parse(array);
-    await commit(config);
+    const newConfig = parse(array);
+    await commit(newConfig);
     console.log('同步完成');
   }
   catch (e) {
