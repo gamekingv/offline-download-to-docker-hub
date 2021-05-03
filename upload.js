@@ -425,7 +425,7 @@ function mapDirectory(root) {
       else await upload(file, digest, size);
       console.log('开始上传配置到数据库');
       await add([{
-        paths: path.split('/'),
+        paths: file.split('/'),
         item: {
           name: filename,
           type: 'file',
