@@ -424,14 +424,13 @@ function mapDirectory(root) {
       if (layers.some(e => e.digest === digest)) console.log('文件已存在');
       else await upload(file, digest, size);
       console.log('开始上传配置到数据库');
-      await add({
-        paths: file.split('/'),
-        item: {
-          name: file.split('/').pop(),
-          type: 'file',
-          digest,
-          size
-        }
+      const paths = file.split('/');
+      const filename = paths.pop();
+      await add(paths, {
+        name: filename,
+        type: 'file',
+        digest,
+        size
       });
       console.log('上传完成');
       console.log('总用时：' + timeFormatter(Date.now() - start));
