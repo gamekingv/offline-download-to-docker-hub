@@ -454,5 +454,5 @@ function mapDirectory(root) {
     await synchronize();
     uploadedCount = 0;
   }
-  client.connect();
+  await client.close();
 })();
