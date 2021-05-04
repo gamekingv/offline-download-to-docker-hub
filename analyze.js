@@ -1,6 +1,11 @@
 const fs = require('fs').promises;
 const { exec } = require('child_process');
 
+const {
+  GITHUB_REPOSITORY: repository,
+  QUEUE_DISPATCH_TOKEN: token
+} = process.env;
+
 function processOutput(output) {
   const maxSize = 10 * 1024 * 1024 * 1024;
   const singleFileMaxSize = 13 * 1024 * 1024 * 1024;
@@ -43,8 +48,44 @@ function processOutput(output) {
     return `magnet:?xt=urn:btih:${hash}\r\n  select-file=${list.slice(0, -1)}`;
   });
   if (bigFiles.length > 0) console.log('以下文件因过大而忽略：');
+  console.log(`magnet:?xt=urn:btih:${hash}`);
   bigFiles.forEach(file => console.log(file));
   return taskList;
+}
+
+async function sendToDownload(remote, local) {
+  const content = Buffer.from(local).toString('base64'),
+    configLink = remote,
+    body = {
+      message: '大文件种子下载推送',
+      content
+    },
+    headers = {
+      'Authorization': `token ${token}`,
+      'User-Agent': 'Github Actions'
+    };
+  if (!content) return 'empty';
+  const response = await new Promise((res, rej) => {
+    request(configLink, {
+      headers,
+      timeout: 10000
+    }, function (error, response) {
+      if (error) return rej(error);
+      else res(response);
+    });
+  });
+  body.sha = JSON.parse(response.body).sha;
+  await new Promise((res, rej) => {
+    request(configLink, {
+      method: 'PUT',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+      body: JSON.stringify(body),
+      timeout: 10000
+    }, function (error, response) {
+      if (error) return rej(error);
+      else res(response);
+    });
+  });
 }
 
 (async () => {
@@ -60,9 +101,19 @@ function processOutput(output) {
     }
     else '命令无输出';
   }
-  let count = 0;
-  tasks.forEach(task => {
-    console.log(count++);
-    console.log(task);
-  });
+  for (const task of tasks) {
+    try {
+      await sendToDownload(`https://api.github.com/repos/${repository}/contents/list.txt`, task);
+      console.log('');
+      console.log(task);
+      console.log('任务发送成功');
+      await new Promise(res => setTimeout(() => res(), 30000));
+    }
+    catch (error) {
+      console.log('');
+      console.log(task);
+      console.log('任务发送失败：');
+      console.log(error);
+    }
+  }
 })();

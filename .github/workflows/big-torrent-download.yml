@@ -47,3 +47,5 @@ jobs:
       - name: Dispatch Task
         run: |
           node analyze.js
+        env:
+          QUEUE_DISPATCH_TOKEN: ${{ secrets.TOKEN }}
