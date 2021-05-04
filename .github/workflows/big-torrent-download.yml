@@ -1,9 +1,9 @@
-name: offline-download
+name: big-torrent-download
 on:
   push:
     branches: [ main ]
     paths:
-      - 'list.txt'
+      - 'big-torrent-list.txt'
   workflow_dispatch:
     # inputs:
     #   type:
