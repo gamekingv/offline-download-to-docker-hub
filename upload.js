@@ -450,9 +450,14 @@ function mapDirectory(root) {
     }
     console.log('');
   }
-  if (uploadedCount > 0) {
-    await synchronize();
-    uploadedCount = 0;
+  try {
+    if (uploadedCount > 0) {
+      await synchronize();
+      uploadedCount = 0;
+    }
+  }
+  catch (e) {
+    console.log(e.toString());
   }
   await client.close();
 })();
