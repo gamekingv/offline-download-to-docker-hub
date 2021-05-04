@@ -1,2 +1,2 @@
-magnet:?xt=urn:btih:1F4CAE09A222664D04B7B55E05754E95D2A49C44
-  select-file=1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37
+magnet:?xt=urn:btih:1f4cae09a222664d04b7b55e05754e95d2a49c44
+  select-file=24-59
