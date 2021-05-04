@@ -1,0 +1,49 @@
+name: offline-download
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'list.txt'
+  workflow_dispatch:
+    # inputs:
+    #   type:
+    #     description: 'dispatch type'
+    #     required: false
+    #     default: ''
+    #   list:
+    #     description: 'download list'
+    #     required: false
+    #     default: ''
+    #   parent:
+    #     description: 'parent run id'
+    #     required: false
+    #     default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      # 安装环境
+      - name: Install Enviroment
+        run: |
+          sudo apt-get update
+          sudo apt-get install aria2
+          npm install
+          node fetchtracker.js
+
+      # 下载种子
+      - name: Get Torrents
+        run: |
+          echo "开始下载种子："
+          cat big-torrent-list.txt
+          aria2c.exe --bt-metadata-only=true --bt-save-metadata=true --dir=./ --input-file=big-torrent-list.txt
+
+      # 触发任务
+      - name: Dispatch Task
+        run: |
+          node analyze.js
