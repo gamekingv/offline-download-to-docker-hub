@@ -47,6 +47,7 @@ async function errorHandler(error) {
   if (error.response) {
     if (!config || [401, 404, 504].some(status => error.response.status === status)) return await Promise.reject(error);
     console.log('请求出错，HTTP状态码：' + error.response.status);
+    console.log(error.response.data);
   }
   else console.log(`请求出错：${error.toString()}`);
   config.__retryCount = config.__retryCount || 0;
