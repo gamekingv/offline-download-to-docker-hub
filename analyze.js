@@ -50,7 +50,7 @@ function processOutput(output) {
 (async () => {
   const files = await fs.readdir('./');
   const torrents = files.filter((item) => /\.torrent$/.test(item));
-  const execP = await new Promise((res, rej) => exec(cmd, (err, stdout, stderr) => err ? rej(stderr) : res(stdout)));
+  const execP = async (cmd) => await new Promise((res, rej) => exec(cmd, (err, stdout, stderr) => err ? rej(stderr) : res(stdout)));
   const tasks = [];
   for (const torrent of torrents) {
     const output = await execP(`aria2c -S "${torrent}"`);
