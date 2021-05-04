@@ -1,1 +1,1 @@
-magnet:?xt=urn:btih:e5466f44adc9184417fd07380138c80276164b6b
+magnet:?xt=urn:btih:6a0d9f84cdc73a4428ad3ecef050fe24fb0c51e4&dn=WANZ-817%20%E9%BB%91%E4%BA%BA%E8%8B%B1%E8%AF%AD%E4%BC%9A%E8%AF%9DNTR%20%E7%88%B1%E7%94%B0%E9%A3%9E%E9%B8%9F&tr=http%3A%2F%2Fsukebei.tracker.wf%3A8888%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce
