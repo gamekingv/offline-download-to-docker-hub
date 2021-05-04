@@ -41,7 +41,7 @@ jobs:
         run: |
           echo "开始下载种子："
           cat big-torrent-list.txt
-          aria2c.exe --bt-metadata-only=true --bt-save-metadata=true --dir=./ --input-file=big-torrent-list.txt
+          aria2c --bt-metadata-only=true --bt-save-metadata=true --dir=./ --input-file=big-torrent-list.txt
 
       # 触发任务
       - name: Dispatch Task
