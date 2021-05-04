@@ -1,5 +1,6 @@
 const fs = require('fs').promises;
 const { exec } = require('child_process');
+const request = require('request');
 
 const {
   GITHUB_REPOSITORY: repository,
