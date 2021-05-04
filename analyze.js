@@ -48,8 +48,10 @@ function processOutput(output) {
     }, '');
     return `magnet:?xt=urn:btih:${hash}\r\n  select-file=${list.slice(0, -1)}`;
   });
-  if (bigFiles.length > 0) console.log('以下文件因过大而忽略：');
-  console.log(`magnet:?xt=urn:btih:${hash}`);
+  if (bigFiles.length > 0) {
+    console.log('以下文件因过大而忽略：');
+    console.log(`magnet:?xt=urn:btih:${hash}`);
+  }
   bigFiles.forEach(file => console.log(file));
   return taskList;
 }
