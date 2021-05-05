@@ -1,2 +1,2 @@
-https://exhentai.org/torrent/1902807/d8262f9629f10db5fa4383f648c7adca75dff0a6.torrent
-https://exhentai.org/torrent/1903318/8835cff7416fae3a0262661ff5b9b0b74f5224c5.torrent
+http://ccr-1253687700.cn-south.myqcloud.com/docker%2Fregistry%2Fv2%2Fblobs%2Fsha256%2Ff4%2Ff4d87966bc793a94a73c68794229bea7caf7b296215beb81a1488c558f348900%2Fdata?q-sign-algorithm=sha1&q-ak=AKIDQRmsg7xgYDfqkOJGXWG7vqXy8H9VKR0H&q-sign-time=1620178548%3B1620179748&q-key-time=1620178548%3B1620179748&q-header-list=host&q-url-param-list=&q-signature=a970f976e9459ebb0a8a642bed640e70538bb15c
+  out=Rioko凉凉子-牛头人第二弹.zip
