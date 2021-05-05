@@ -1,1 +1,1 @@
-https://sukebei.nyaa.si/download/2666489.torrent
+https://github.com/gamekingv/docker-drive/releases/download/v0.3.4/extension.crx
