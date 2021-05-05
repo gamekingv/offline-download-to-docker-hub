@@ -1,5 +1,7 @@
 const fs = require('fs').promises;
-const { exec } = require('child_process');
+const child_process = require('child_process');
+const { promisify } = require('util');
+const exec = promisify(child_process.exec);
 const got = require('got');
 
 const {
@@ -90,10 +92,10 @@ async function sendToDownload(remote, local) {
   try {
     const files = await fs.readdir('./');
     const torrents = files.filter((item) => /\.torrent$/.test(item));
-    const execP = async (cmd) => await new Promise((res, rej) => exec(cmd, (err, stdout, stderr) => err ? rej(stderr) : res(stdout)));
     const tasks = [];
     for (const torrent of torrents) {
-      const output = await execP(`aria2c -S "${torrent}"`);
+      const { stdout: output, stderr } = await exec(`aria2c -S "${torrent}"`);
+      if (stderr) throw stderr;
       if (output) {
         const list = processOutput(output);
         tasks.push(...list);
