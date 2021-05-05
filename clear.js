@@ -26,18 +26,17 @@ async function saveDownloadedList(filename, downloadedList) {
       content
     },
     headers = {
-      'Authorization': `token ${token}`,
-      'User-Agent': 'Github Actions'
+      'Authorization': `token ${token}`
     };
   const response = await client.get(commitLink, {
     headers
   });
-  tree_sha = JSON.parse(response.body)[0].commit.tree.sha;
+  tree_sha = response.body[0].commit.tree.sha;
 
   const treeResponse = await client.get(`https://api.github.com/repos/${repository}/git/trees/${tree_sha}`, {
     headers
   });
-  const file = JSON.parse(treeResponse.body).tree.find(file => file.path === filename);
+  const file = treeResponse.body.tree.find(file => file.path === filename);
   body.sha = file.sha;
 
   await client.put(configLink, {
