@@ -1,12 +1,20 @@
-const request = require('request');
 const fs = require('fs');
+const got = require('got');
 
 const {
   GITHUB_REPOSITORY: repository,
-  GITHUB_RUN_ID: run_id,
+  // GITHUB_RUN_ID: run_id,
   QUEUE_TOKEN: token,
   QUEUE_DISPATCH_TOKEN: dispatchToken
 } = process.env;
+
+const client = got.extend({
+  headers: {
+    'User-Agent': 'Github Actions'
+  },
+  timeout: 10000,
+  responseType: 'json'
+});
 
 async function saveDownloadedList(filename, downloadedList) {
   let content = Buffer.from(downloadedList).toString('base64'),
@@ -21,60 +29,36 @@ async function saveDownloadedList(filename, downloadedList) {
       'Authorization': `token ${token}`,
       'User-Agent': 'Github Actions'
     };
-  const response = await new Promise((res, rej) => {
-    request(commitLink, {
-      headers,
-      timeout: 10000
-    }, function (error, response) {
-      if (error) return rej(error);
-      else res(response);
-    });
+  const response = await client.get(commitLink, {
+    headers
   });
   tree_sha = JSON.parse(response.body)[0].commit.tree.sha;
 
-  const treeResponse = await new Promise((res, rej) => {
-    request(`https://api.github.com/repos/${repository}/git/trees/${tree_sha}`, {
-      headers,
-      timeout: 10000
-    }, function (error, response) {
-      if (error) return rej(error);
-      else res(response);
-    });
+  const treeResponse = await client.get(`https://api.github.com/repos/${repository}/git/trees/${tree_sha}`, {
+    headers
   });
   const file = JSON.parse(treeResponse.body).tree.find(file => file.path === filename);
   body.sha = file.sha;
-  await new Promise((res, rej) => {
-    request(configLink, {
-      method: 'PUT',
-      headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
-      body: JSON.stringify(body),
-      timeout: 10000
-    }, function (error, response) {
-      if (error) return rej(error);
-      else res(response);
-    });
+
+  await client.put(configLink, {
+    headers,
+    body: JSON.stringify(body)
   });
 }
 
-function triggerNext() {
-  return new Promise((res, rej) => {
-    const body = JSON.stringify({
-      ref: 'main'
-    });
-    request(`https://api.github.com/repos/${repository}/actions/workflows/google-drive-download.yml/dispatches`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': body.length,
-        'Authorization': `token ${dispatchToken}`,
-        'User-Agent': 'Manual'
-      },
-      body,
-      timeout: 10000
-    }, function (error, response) {
-      if (error) return rej(error);
-      else res(response);
-    });
+async function triggerNext() {
+  const body = JSON.stringify({
+    ref: 'main',
+    // inputs: {
+    //   parent: run_id
+    // }
+  });
+  return await client.post(`https://api.github.com/repos/${repository}/actions/workflows/google-drive-download.yml/dispatches`, {
+    headers: {
+      'Accept': 'application/vnd.github.v3+json',
+      'Authorization': `token ${dispatchToken}`,
+    },
+    body,
   });
 }
 
@@ -116,6 +100,7 @@ function mapDirectory(root) {
   }
   catch (error) {
     console.log(error);
+    if (error.response && error.response.body) console.log(error.response.body);
     process.exit(1);
   }
 })();
