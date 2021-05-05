@@ -2,7 +2,11 @@ const axios = require('axios');
 const fs = require('fs');
 const crypto = require('crypto');
 const request = require('request');
-const MongoClient = require('mongodb').MongoClient;
+const { MongoClient } = require('mongodb');
+const { promisify } = require('util');
+const stream = require('stream');
+const got = require('got');
+const pipeline = promisify(stream.pipeline);
 
 const {
   QUEUE_DD_URL: repositoryUrl,
@@ -146,6 +150,18 @@ async function uploadConfig(config) {
 async function uploadFile(path, digest, size) {
   const { server, namespace, image } = repository;
   const url = await getUploadURL();
+  await pipeline(
+    fs.createReadStream(path),
+    got.stream.put(`${url}&digest=${digest}`, {
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'repository': [server, namespace, image].join('/'),
+        'Content-Length': size,
+        'Authorization': `Bearer ${repository.token}`
+      },
+      retry: 2
+    })
+  );
   await new Promise((res, rej) => {
     fs.createReadStream(path).pipe(request({
       url: `${url}&digest=${digest}`,
