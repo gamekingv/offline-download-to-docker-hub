@@ -40,5 +40,7 @@ function ccToSrt(subs, delay) {
   }
   catch (error) {
     console.log(error);
+    if (error.response && error.response.body) console.log(error.response.body);
+    process.exit(1);
   }
 })();

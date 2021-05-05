@@ -1,6 +1,5 @@
 const got = require('got');
-const MongoClient = require('mongodb').MongoClient;
-const ObjectID = require('mongodb').ObjectID;
+const { MongoClient, ObjectID } = require('mongodb').MongoClient;
 
 const {
   GITHUB_REPOSITORY: repository,
@@ -69,5 +68,7 @@ async function executeTask({ name, list }) {
   }
   catch (error) {
     console.log(error);
+    if (error.response && error.response.body) console.log(error.response.body);
+    process.exit(1);
   }
 })();

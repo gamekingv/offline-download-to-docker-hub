@@ -255,8 +255,9 @@ async function initialize(files) {
     await commit(newConfig);
     console.log('同步完成');
   }
-  catch (e) {
-    console.log(e);
+  catch (error) {
+    console.log(error);
+    process.exit(1);
   }
   await client.close();
 })();

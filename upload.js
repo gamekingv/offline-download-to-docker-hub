@@ -1,7 +1,6 @@
 const axios = require('axios');
 const fs = require('fs');
 const crypto = require('crypto');
-const request = require('request');
 const { MongoClient } = require('mongodb');
 const { promisify } = require('util');
 const stream = require('stream');
@@ -454,8 +453,10 @@ function mapDirectory(root) {
       uploadedCount = 0;
     }
   }
-  catch (e) {
-    console.log(e.toString());
+  catch (error) {
+    console.log(error);
+    if (error.response && error.response.body) console.log(error.response.body);
+    process.exit(1);
   }
   await client.close();
 })();

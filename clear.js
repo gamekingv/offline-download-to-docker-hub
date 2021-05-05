@@ -41,23 +41,23 @@ async function saveDownloadedList(filename, downloadedList) {
 
   await client.put(configLink, {
     headers,
-    body: JSON.stringify(body)
+    json: body
   });
 }
 
 async function triggerNext() {
-  const body = JSON.stringify({
+  const body = {
     ref: 'main',
     // inputs: {
     //   parent: run_id
     // }
-  });
+  };
   return await client.post(`https://api.github.com/repos/${repository}/actions/workflows/google-drive-download.yml/dispatches`, {
     headers: {
       'Accept': 'application/vnd.github.v3+json',
       'Authorization': `token ${dispatchToken}`,
     },
-    body,
+    json: body,
   });
 }
 

@@ -66,5 +66,6 @@ async function getFolderInfo(id, folder_name) {
   }
   catch (error) {
     console.log(error);
+    process.exit(1);
   }
 })();
