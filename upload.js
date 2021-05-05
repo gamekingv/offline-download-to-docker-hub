@@ -162,25 +162,6 @@ async function uploadFile(path, digest, size) {
       retry: 2
     })
   );
-  await new Promise((res, rej) => {
-    fs.createReadStream(path).pipe(request({
-      url: `${url}&digest=${digest}`,
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/octet-stream',
-        'repository': [server, namespace, image].join('/'),
-        'Content-Length': size,
-        'Authorization': `Bearer ${repository.token}`
-      }
-    }, (error, response) => {
-      const result = { response: { status: response.statusCode } };
-      if (error) {
-        console.log(error.toString());
-        rej(result);
-      }
-      else res(result);
-    }));
-  });
 }
 
 async function commit(config) {
