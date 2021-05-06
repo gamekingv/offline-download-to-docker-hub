@@ -4,7 +4,7 @@
 
 > 每个下载任务最多只能运行6小时，超过会自动被终止。
 
-> 任务会串行下载，如新任务执行时检测到已有任务在进行，将会终止，并写入mongodb中进，在进行中任务完成时，会自动触发队列中的任务执行。需要在secrets中添加有触发workflow权限的TOKEN变量，以及DB_HOST、DB_USERNAME、DB_PASSWORD以连接mongodb。
+> （已改为并行下载）任务会串行下载，如新任务执行时检测到已有任务在进行，将会终止，并写入mongodb中进，在进行中任务完成时，会自动触发队列中的任务执行。需要在secrets中添加有触发workflow权限的TOKEN变量，以及DB_HOST、DB_USERNAME、DB_PASSWORD以连接mongodb。
 
 ## 百度网盘
 在baidu-list.txt添加网盘文件路径即可，例如/folder/files.mp4，也可以是目录。需要先在secrets中添加BDUSS。
