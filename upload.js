@@ -157,8 +157,7 @@ async function uploadFile(path, digest, size) {
         'repository': [server, namespace, image].join('/'),
         'Content-Length': size,
         'Authorization': `Bearer ${repository.token}`
-      },
-      retry: 2
+      }
     })
   );
 }
