@@ -255,6 +255,7 @@ async function upload(path, digest, size, retryCount = 0) {
       console.log(`开始第 ${retryCount} 次重试上传`);
       await upload(path, digest, size, retryCount);
     }
+    else throw error;
   }
 }
 
