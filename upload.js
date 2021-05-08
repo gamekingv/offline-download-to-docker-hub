@@ -56,7 +56,7 @@ async function errorHandler(error) {
   config.__retryCount = config.__retryCount || 0;
   if (config.__retryCount >= preset.retry) return await Promise.reject(error);
   config.__retryCount += 1;
-  await new Promise(res => setTimeout(() => res(''), 1000));
+  await new Promise(res => setTimeout(() => res(''), config.__retryCount * 2000));
   console.log(`第 ${config.__retryCount} 次重试请求`);
   return await axios(config);
 }
