@@ -247,7 +247,7 @@ async function upload(path, digest, size, retryCount = 0) {
   catch (error) {
     console.log(path + ' 上传出错：');
     if (error.response) {
-      console.log('HTTP状态码：' + error.response.status);
+      console.log('HTTP状态码：' + error.response.statusCode);
     }
     else console.log(error.toString());
     if (retryCount < 3) {
