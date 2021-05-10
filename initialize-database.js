@@ -346,7 +346,7 @@ async function initialize(files) {
     console.log('同步docker配置到数据库');
     await initialize(config.files);
     console.log('同步数据库配置到docker');
-    const newConfig = list();
+    const newConfig = await list();
     await commit(newConfig);
     console.log('同步完成');
   }
@@ -354,5 +354,4 @@ async function initialize(files) {
     console.log(error);
     process.exit(1);
   }
-  await client.close();
 })();
