@@ -61,9 +61,8 @@ jobs:
           QUEUE_DD_URL: ${{ secrets.URL }}
           QUEUE_DD_USERNAME: ${{ secrets.USERNAME }}
           QUEUE_DD_PASSWORD: ${{ secrets.PASSWORD }}
-          QUEUE_DB_HOST: ${{ secrets.DB_HOST }}
-          QUEUE_DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          QUEUE_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          QUEUE_DB_URL: ${{ secrets.DB_URL }}
+          QUEUE_DB_APIKEY: ${{ secrets.DB_APIKEY }}
 
       # 执行队列剩余任务
       # - name: Queue Pop

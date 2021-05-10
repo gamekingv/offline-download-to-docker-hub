@@ -1,6 +1,7 @@
 const axios = require('axios');
 const fs = require('fs');
 const crypto = require('crypto');
+const { MongoClient } = require('mongodb');
 const { promisify } = require('util');
 const stream = require('stream');
 const got = require('got');
@@ -11,10 +12,17 @@ const {
   QUEUE_DD_USERNAME: username,
   QUEUE_DD_PASSWORD: password,
   GITHUB_WORKFLOW: workflow_name,
-  QUEUE_DB_URL: db_url,
-  QUEUE_DB_APIKEY: db_apikey
+  QUEUE_DB_HOST: db_host,
+  QUEUE_DB_USERNAME: db_username,
+  QUEUE_DB_PASSWORD: db_password
 } = process.env;
 
+
+const db_name = 'docker_drive';
+const uri = `mongodb+srv://${db_username}:${db_password}@${db_host}/${db_name}?retryWrites=true&w=majority`;
+const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+const collection_name = repositoryUrl;
+let collection;
 
 const [server, namespace, image] = repositoryUrl.split('/');
 const secret = new Buffer.from(`${username}:${password}`).toString('base64');
@@ -23,13 +31,7 @@ const repository = {
   secret,
   server,
   namespace,
-  image,
-  databaseURL: db_url,
-  databaseToken: {
-    token: '',
-    apikey: db_apikey,
-    expiration: 0
-  }
+  image
 };
 
 const ignoreFilters = [
@@ -64,8 +66,6 @@ axios.defaults.timeout = preset.timeout;
 axios.interceptors.response.use(undefined, errorHandler);
 axios.defaults.maxContentLength = Infinity;
 axios.defaults.maxBodyLength = Infinity;
-
-const client = axios.create();
 
 async function requestSender(url, instance) {
   instance.interceptors.response.use(undefined, errorHandler);
@@ -260,117 +260,53 @@ async function upload(path, digest, size, retryCount = 0) {
   }
 }
 
-async function getDatabaseToken(secret) {
-  const { data } = await axios.post('https://iam.cloud.ibm.com/identity/token', qs.stringify({
-    'grant_type': 'urn:ibm:params:oauth:grant-type:apikey',
-    'apikey': secret
-  }), {
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/x-www-form-urlencoded'
-    }
-  });
-  return { token: data.access_token, expiration: data.expiration };
-}
-
-async function setToken() {
-  if (!repository.databaseToken) return;
-  const now = Date.now() / 1000;
-  if (now >= repository.databaseToken.expiration - 60) {
-    const { token, expiration } = await getDatabaseToken(repository.databaseToken.apikey);
-    repository.databaseToken.token = token;
-    repository.databaseToken.expiration = expiration;
-    client.defaults.headers.common['Authorization'] = `Bearer ${repository.databaseToken.token}`;
-  }
-}
-
-async function search(name, parent) {
-  await setToken(repository);
-  const databaseName = repository.url.replaceAll('/', '-').replaceAll('.', '_');
-  const { data } = await client.post(`${repository.databaseURL}/${databaseName}/_find`, {
-    'selector': {
-      'parent': { '$eq': parent },
-      'name': { '$eq': name }
-    },
-    'fields': ['_id', 'name', 'parent', 'type', 'digest', 'size', 'uploadTime']
-  }, {
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-  return data.docs;
-}
-
-async function update(item, parent) {
-  await setToken(repository);
-  const databaseName = repository.url.replaceAll('/', '-').replaceAll('.', '_');
-  delete item.files;
-  item.parent = parent;
-  if (item._id) {
-    try {
-      const { headers } = await client.head(`${repository.databaseURL}/${databaseName}/${item._id}`);
-      if (headers['etag']) item._rev = headers['etag'].replaceAll('"', '');
-      else throw '';
-    }
-    catch (error) {
-      throw `"${item.name}" doesn't exist`;
-    }
-  }
-  const { data } = await client.post(`${repository.databaseURL}/${databaseName}`, item, {
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-  return data.id;
-}
-
 async function add(paths, item) {
-  const id = await paths.reduce(async (parentId, path) => {
-    const [folder] = await search(path, await parentId);
-    if (folder) {
-      folder.uploadTime = item.uploadTime;
-      return await update(folder, await parentId);
-    }
-    else return await update({
-      id: Symbol(),
+  const timestamp = Date.now();
+  const id = await paths.reduce(async (parent_id, path) => {
+    const { value } = await collection.findOneAndUpdate({
       name: path,
-      type: 'folder',
-      uploadTime: item.uploadTime
-    }, await parentId);
+      parent: await parent_id
+    }, {
+      $set: {
+        uploadTime: timestamp,
+        type: 'folder',
+      }
+    }, {
+      projection: {
+        _id: 1
+      },
+      upsert: true,
+      returnOriginal: false
+    });
+    return value._id;
   }, null);
   if (item.type === 'folder') {
-    await update(item, id);
+    await collection.findOneAndUpdate({
+      name: item.name,
+      parent: id
+    }, {
+      $set: {
+        uploadTime: timestamp,
+        type: 'folder',
+      }
+    }, {
+      upsert: true
+    });
   }
   else {
-    let [file] = await search(item.name, id);
-    if (file && file.digest === item.digest) return;
-    let finalName = item.name, index = 0;
+    if (await collection.countDocuments({ name: item.name, parent: id, digest: item.digest }) > 0) return;
+    let final_name = item.name, index = 0;
     let [, name, ext] = item.name.match(/(.*)(\.[^.]*)$/) || [];
     if (!name) {
       name = item.name;
       ext = '';
     }
-    while (([file] = await search(item.name, id)).length > 0) {
-      if (file && file.digest === item.digest) return;
-      finalName = `${name} (${++index})${ext}`;
+    while (await collection.countDocuments({ name: final_name, parent: id }) > 0) {
+      if (await collection.countDocuments({ name: final_name, parent: id, digest: item.digest }) > 0) return;
+      final_name = `${name} (${++index})${ext}`;
     }
-    await update(Object.assign(item, { name: finalName }), id);
+    await collection.insertOne(Object.assign(item, { name: final_name, parent: id, uploadTime: timestamp }));
   }
-}
-
-async function list() {
-  await this.setToken(repository);
-  const databaseName = repository.url.replaceAll('/', '-').replaceAll('.', '_');
-  const { data } = await client.post(`${repository.databaseURL}/${databaseName}/_find`, {
-    'selector': { '_id': { '$gt': '0' } },
-    'fields': ['_id', 'name', 'parent', 'type', 'digest', 'size', 'uploadTime'],
-    'sort': [{ 'uploadTime': 'asc' }]
-  }, {
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-  return parse(data.docs);
 }
 
 function parse(array) {
@@ -401,7 +337,8 @@ function parse(array) {
 async function synchronize() {
   console.log('');
   console.log('开始同步数据库配置到docker');
-  const config = await list();
+  const array = await collection.find().toArray();
+  const config = parse(array);
   await commit(config);
   console.log('同步数据库配置成功');
 }
@@ -462,6 +399,8 @@ function mapDirectory(root) {
 (async () => {
   if (!fs.existsSync('Offline')) return console.log('无文件需要上传');
   const files = mapDirectory('Offline');
+  await client.connect();
+  collection = client.db(db_name).collection(collection_name);
   const { layers } = await getManifests();
   let uploadedCount = 0;
   if (workflow_name === 'decompression-download') ignoreFilters.push(/\.zip$/, /\.rar$/);
@@ -520,4 +459,5 @@ function mapDirectory(root) {
     if (error.response && error.response.body) console.log(error.response.body);
     process.exit(1);
   }
+  await client.close();
 })();
