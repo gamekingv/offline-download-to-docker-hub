@@ -222,36 +222,130 @@ function parse(array) {
   return { files: root, layers };
 }
 
+
+async function getDatabaseToken(secret) {
+  const { data } = await axios.post('https://iam.cloud.ibm.com/identity/token', qs.stringify({
+    'grant_type': 'urn:ibm:params:oauth:grant-type:apikey',
+    'apikey': secret
+  }), {
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  });
+  return { token: data.access_token, expiration: data.expiration };
+}
+
+async function setToken() {
+  if (!repository.databaseToken) return;
+  const now = Date.now() / 1000;
+  if (now >= repository.databaseToken.expiration - 60) {
+    const { token, expiration } = await getDatabaseToken(repository.databaseToken.apikey);
+    repository.databaseToken.token = token;
+    repository.databaseToken.expiration = expiration;
+    client.defaults.headers.common['Authorization'] = `Bearer ${repository.databaseToken.token}`;
+  }
+}
+
+async function update(item, parent) {
+  await setToken(repository);
+  const databaseName = repositoryUrl.replace(/\//g, '-').replace(/\./g, '_');
+  delete item.files;
+  item.parent = parent;
+  if (item._id) {
+    try {
+      const { headers } = await client.head(`${repository.databaseURL}/${databaseName}/${item._id}`);
+      if (headers['etag']) item._rev = headers['etag'].replace(/"/g, '');
+      else throw '';
+    }
+    catch (error) {
+      throw `"${item.name}" doesn't exist`;
+    }
+  }
+  const { data } = await client.post(`${repository.databaseURL}/${databaseName}`, item, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  return data.id;
+}
+
+async function list() {
+  await setToken(repository);
+  const databaseName = repositoryUrl.replace(/\//g, '-').replace(/\./g, '_');
+  const { data } = await client.post(`${repository.databaseURL}/${databaseName}/_find`, {
+    'selector': { '_id': { '$gt': '0' } },
+    'fields': ['_id', 'name', 'parent', 'type', 'digest', 'size', 'uploadTime'],
+    'sort': [{ 'uploadTime': 'asc' }]
+  }, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  return parse(data.docs);
+}
+
 async function treeToArray(items, parent) {
   for (const item of items) {
     const files = item.files;
     delete item.files;
     delete item._id;
-    item.parent = parent;
-    const { insertedId: id } = await collection.insertOne(item);
-    if (files) await treeToArray(files, id);
+    const id = await update(item, parent, repository);
+    if (files) await treeToArray(files, id, repository);
   }
 }
-
 async function initialize(files) {
-  await collection.deleteMany();
-  if (files) await treeToArray(files, null);
-  await collection.createIndex({ name: 1, parent: 1 }, { unique: true });
+  await setToken(repository);
+  const databaseName = repositoryUrl.replace(/\//g, '-').replace(/\./g, '_');
+  try {
+    await client.head(`${repository.databaseURL}/${databaseName}`);
+    await client.delete(`${repository.databaseURL}/${databaseName}`);
+  }
+  catch (error) {
+    if (error.response.status !== 404) throw error;
+  }
+  await client.put(`${repository.databaseURL}/${databaseName}`);
+  await client.post(`${repository.databaseURL}/${databaseName}/_index`, {
+    'ddoc': 'uploadTime',
+    'index': {
+      'fields': [{ 'uploadTime': 'asc' }]
+    },
+    'name': 'getItemByUploadTime',
+    'type': 'json'
+  }, {
+    headers: { 'Content-Type': 'application/json' }
+  });
+  await client.post(`${repository.databaseURL}/${databaseName}/_index`, {
+    'ddoc': 'parent',
+    'index': {
+      'fields': [{ 'parent': 'asc' }]
+    },
+    'name': 'getItemByParent',
+    'type': 'json'
+  }, {
+    headers: { 'Content-Type': 'application/json' }
+  });
+  await client.post(`${repository.databaseURL}/${databaseName}/_index`, {
+    'ddoc': 'parent_and_name',
+    'index': {
+      'fields': [{ 'parent': 'asc' }, { 'name': 'asc' }]
+    },
+    'name': 'getItemByParentAndName',
+    'type': 'json'
+  }, {
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (files) await treeToArray(files, null, repository);
 }
-
 
 (async () => {
   try {
-    await client.connect();
     console.log('获取docker配置');
     const { config } = await getManifests();
-    collection = client.db(db_name).collection(collection_name);
     console.log('同步docker配置到数据库');
     await initialize(config.files);
-    console.log('获取数据库配置');
-    const array = await collection.find().toArray();
     console.log('同步数据库配置到docker');
-    const newConfig = parse(array);
+    const newConfig = list();
     await commit(newConfig);
     console.log('同步完成');
   }
