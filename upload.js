@@ -310,7 +310,7 @@ async function update(item, parent) {
   if (item._id) {
     try {
       const { headers } = await client.head(`${repository.databaseURL}/${databaseName}/${item._id}`);
-      if (headers['etag']) item._rev = headers['etag'].replaceAll(/"/g, '');
+      if (headers['etag']) item._rev = headers['etag'].replace(/"/g, '');
       else throw '';
     }
     catch (error) {
