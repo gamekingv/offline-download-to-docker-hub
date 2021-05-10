@@ -360,7 +360,7 @@ async function add(paths, item) {
 }
 
 async function list() {
-  await this.setToken(repository);
+  await setToken(repository);
   const databaseName = repositoryUrl.replace(/\//g, '-').replace(/\./g, '_');
   const { data } = await client.post(`${repository.databaseURL}/${databaseName}/_find`, {
     'selector': { '_id': { '$gt': '0' } },
@@ -490,7 +490,8 @@ function mapDirectory(root) {
         name: filename,
         type: 'file',
         digest,
-        size
+        size,
+        uploadTime: Date.now()
       });
       console.log('上传完成');
       console.log('总用时：' + timeFormatter(Date.now() - start));
