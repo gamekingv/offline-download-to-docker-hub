@@ -1,4 +1,3 @@
-const MongoClient = require('mongodb').MongoClient;
 const axios = require('axios');
 const crypto = require('crypto');
 
@@ -6,9 +5,8 @@ const {
   QUEUE_DD_URL: repositoryUrl,
   QUEUE_DD_USERNAME: username,
   QUEUE_DD_PASSWORD: password,
-  QUEUE_DB_HOST: db_host,
-  QUEUE_DB_USERNAME: db_username,
-  QUEUE_DB_PASSWORD: db_password
+  QUEUE_DB_URL: db_url,
+  QUEUE_DB_APIKEY: db_apikey
 } = process.env;
 
 const [server, namespace, image] = repositoryUrl.split('/');
@@ -18,14 +16,14 @@ const repository = {
   secret,
   server,
   namespace,
-  image
+  image,
+  databaseURL: db_url,
+  databaseToken: {
+    token: '',
+    apikey: db_apikey,
+    expiration: 0
+  }
 };
-
-const db_name = 'docker_drive';
-const uri = `mongodb+srv://${db_username}:${db_password}@${db_host}/${db_name}?retryWrites=true&w=majority`;
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-const collection_name = repositoryUrl;
-let collection;
 
 
 const preset = {
@@ -52,6 +50,8 @@ axios.defaults.timeout = preset.timeout;
 axios.interceptors.response.use(undefined, errorHandler);
 axios.defaults.maxContentLength = Infinity;
 axios.defaults.maxBodyLength = Infinity;
+
+const client = axios.create();
 
 async function requestSender(url, instance) {
   instance.interceptors.response.use(undefined, errorHandler);
