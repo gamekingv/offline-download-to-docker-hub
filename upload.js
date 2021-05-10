@@ -287,7 +287,7 @@ async function setToken() {
 
 async function search(name, parent) {
   await setToken(repository);
-  const databaseName = repository.url.replaceAll('/', '-').replaceAll('.', '_');
+  const databaseName = repositoryUrl.replaceAll('/', '-').replaceAll('.', '_');
   const { data } = await client.post(`${repository.databaseURL}/${databaseName}/_find`, {
     'selector': {
       'parent': { '$eq': parent },
@@ -304,7 +304,7 @@ async function search(name, parent) {
 
 async function update(item, parent) {
   await setToken(repository);
-  const databaseName = repository.url.replaceAll('/', '-').replaceAll('.', '_');
+  const databaseName = repositoryUrl.replaceAll('/', '-').replaceAll('.', '_');
   delete item.files;
   item.parent = parent;
   if (item._id) {
@@ -361,7 +361,7 @@ async function add(paths, item) {
 
 async function list() {
   await this.setToken(repository);
-  const databaseName = repository.url.replaceAll('/', '-').replaceAll('.', '_');
+  const databaseName = repositoryUrl.replaceAll('/', '-').replaceAll('.', '_');
   const { data } = await client.post(`${repository.databaseURL}/${databaseName}/_find`, {
     'selector': { '_id': { '$gt': '0' } },
     'fields': ['_id', 'name', 'parent', 'type', 'digest', 'size', 'uploadTime'],
