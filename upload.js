@@ -330,6 +330,7 @@ async function update(item, parent) {
 
 async function add(paths, item) {
   const id = await paths.reduce(async (parentId, path) => {
+    await new Promise(res => setTimeout(() => res(''), 500));
     const [folder] = await search(path, await parentId);
     if (folder) {
       folder.uploadTime = item.uploadTime;
