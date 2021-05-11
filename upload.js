@@ -330,8 +330,8 @@ async function update(item, parent) {
 
 async function add(paths, item) {
   const id = await paths.reduce(async (parentId, path) => {
-    const [folder] = await search(path, await parentId);
     await new Promise(res => setTimeout(() => res(''), 500));
+    const [folder] = await search(path, await parentId);
     if (folder) {
       folder.uploadTime = item.uploadTime;
       return await update(folder, await parentId);
@@ -343,13 +343,12 @@ async function add(paths, item) {
       uploadTime: item.uploadTime
     }, await parentId);
   }, null);
+  await new Promise(res => setTimeout(() => res(''), 500));
   if (item.type === 'folder') {
     await update(item, id);
   }
   else {
-    let [file] = await search(item.name, id);
-    if (file && file.digest === item.digest) return;
-    let finalName = item.name, index = 0;
+    let finalName = item.name, index = 0, file;
     let [, name, ext] = item.name.match(/(.*)(\.[^.]*)$/) || [];
     if (!name) {
       name = item.name;
