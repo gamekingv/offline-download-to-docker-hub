@@ -47,9 +47,11 @@ const preset = {
 async function errorHandler(error) {
   const config = error.config;
   if (error.response) {
-    if (!config || [401, 404, 504].some(status => error.response.status === status)) return await Promise.reject(error);
     console.log('请求出错，HTTP状态码：' + error.response.status);
     console.log(error.response.data);
+    if (!config || [401, 404, 504].some(status => error.response.status === status)) {
+      return await Promise.reject(error);
+    }
   }
   else console.log(`请求出错：${error.toString()}`);
   config.__retryCount = config.__retryCount || 0;
@@ -67,6 +69,7 @@ axios.defaults.maxContentLength = Infinity;
 axios.defaults.maxBodyLength = Infinity;
 
 const client = axios.create();
+client.interceptors.response.use(undefined, errorHandler);
 
 async function requestSender(url, instance) {
   instance.interceptors.response.use(undefined, errorHandler);
