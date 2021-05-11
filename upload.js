@@ -289,6 +289,7 @@ async function setToken() {
 }
 
 async function search(name, parent) {
+  await new Promise(res => setTimeout(() => res(''), 700));
   await setToken(repository);
   const databaseName = repositoryUrl.replace(/\//g, '-').replace(/\./g, '_');
   const { data } = await client.post(`${repository.databaseURL}/${databaseName}/_find`, {
@@ -330,7 +331,6 @@ async function update(item, parent) {
 
 async function add(paths, item) {
   const id = await paths.reduce(async (parentId, path) => {
-    await new Promise(res => setTimeout(() => res(''), 500));
     const [folder] = await search(path, await parentId);
     if (folder) {
       folder.uploadTime = item.uploadTime;
@@ -354,7 +354,6 @@ async function add(paths, item) {
       ext = '';
     }
     while (([file] = await search(item.name, id)).length > 0) {
-      await new Promise(res => setTimeout(() => res(''), 500));
       if (file && file.digest === item.digest) return;
       finalName = `${name} (${++index})${ext}`;
     }
