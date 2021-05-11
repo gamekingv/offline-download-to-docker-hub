@@ -331,6 +331,7 @@ async function update(item, parent) {
 async function add(paths, item) {
   const id = await paths.reduce(async (parentId, path) => {
     const [folder] = await search(path, await parentId);
+    await new Promise(res => setTimeout(() => res(''), 500));
     if (folder) {
       folder.uploadTime = item.uploadTime;
       return await update(folder, await parentId);
@@ -341,7 +342,6 @@ async function add(paths, item) {
       type: 'folder',
       uploadTime: item.uploadTime
     }, await parentId);
-    await new Promise(res => setTimeout(() => res(''), 500));
   }, null);
   if (item.type === 'folder') {
     await update(item, id);
