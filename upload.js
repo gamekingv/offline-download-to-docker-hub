@@ -47,11 +47,11 @@ const preset = {
 async function errorHandler(error) {
   const config = error.config;
   if (error.response) {
-    console.log('请求出错，HTTP状态码：' + error.response.status);
-    console.log(error.response.data);
     if (!config || [401, 404, 504].some(status => error.response.status === status)) {
       return await Promise.reject(error);
     }
+    console.log('请求出错，HTTP状态码：' + error.response.status);
+    console.log(error.response.data);
   }
   else console.log(`请求出错：${error.toString()}`);
   config.__retryCount = config.__retryCount || 0;
@@ -343,7 +343,6 @@ async function add(paths, item) {
       uploadTime: item.uploadTime
     }, await parentId);
   }, null);
-  await new Promise(res => setTimeout(() => res(''), 500));
   if (item.type === 'folder') {
     await update(item, id);
   }
