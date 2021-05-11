@@ -356,6 +356,7 @@ async function add(paths, item) {
       ext = '';
     }
     while (([file] = await search(item.name, id)).length > 0) {
+      await new Promise(res => setTimeout(() => res(''), 500));
       if (file && file.digest === item.digest) return;
       finalName = `${name} (${++index})${ext}`;
     }
