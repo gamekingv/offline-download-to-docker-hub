@@ -292,12 +292,11 @@ async function search(name, parent) {
   await new Promise(res => setTimeout(() => res(''), 700));
   await setToken(repository);
   const databaseName = repositoryUrl.replace(/\//g, '-').replace(/\./g, '_');
-  const { data } = await client.post(`${repository.databaseURL}/${databaseName}/_find`, {
-    'selector': {
-      'parent': { '$eq': parent },
-      'name': { '$eq': name }
+  const { data } = await client.post(`${repository.databaseURL}/${databaseName}/_partition/${parent}/_find`, {
+    selector: {
+      name: { $eq: name }
     },
-    'fields': ['_id', 'name', 'parent', 'type', 'digest', 'size', 'uploadTime']
+    fields: ['_id', 'name', 'uuid', 'type', 'digest', 'size', 'uploadTime']
   }, {
     headers: {
       'Content-Type': 'application/json'
@@ -310,7 +309,6 @@ async function update(item, parent) {
   await setToken(repository);
   const databaseName = repositoryUrl.replace(/\//g, '-').replace(/\./g, '_');
   delete item.files;
-  item.parent = parent;
   if (item._id) {
     try {
       const { headers } = await client.head(`${repository.databaseURL}/${databaseName}/${item._id}`);
@@ -321,12 +319,17 @@ async function update(item, parent) {
       throw `"${item.name}" doesn't exist`;
     }
   }
+  else {
+    const { data } = await client.get(`${repository.databaseURL}/_uuids`);
+    item.uuid = data.uuids[0];
+    item._id = `${parent}:${item.uuid}`;
+  }
   const { data } = await client.post(`${repository.databaseURL}/${databaseName}`, item, {
     headers: {
       'Content-Type': 'application/json'
     }
   });
-  return data.id;
+  return data.id.split(':')[1];
 }
 
 async function add(paths, item) {
@@ -342,7 +345,7 @@ async function add(paths, item) {
       type: 'folder',
       uploadTime: item.uploadTime
     }, await parentId);
-  }, null);
+  }, 'root');
   if (item.type === 'folder') {
     await update(item, id);
   }
@@ -353,7 +356,7 @@ async function add(paths, item) {
       name = item.name;
       ext = '';
     }
-    while (([file] = await search(item.name, id)).length > 0) {
+    while (([file] = await search(finalName, id)).length > 0) {
       if (file && file.digest === item.digest) return;
       finalName = `${name} (${++index})${ext}`;
     }
@@ -365,9 +368,9 @@ async function list() {
   await setToken(repository);
   const databaseName = repositoryUrl.replace(/\//g, '-').replace(/\./g, '_');
   const { data } = await client.post(`${repository.databaseURL}/${databaseName}/_find`, {
-    'selector': { '_id': { '$gt': '0' } },
-    'fields': ['_id', 'name', 'parent', 'type', 'digest', 'size', 'uploadTime'],
-    'sort': [{ 'uploadTime': 'asc' }]
+    selector: { _id: { $gt: '0' } },
+    fields: ['_id', 'name', 'uuid', 'type', 'digest', 'size', 'uploadTime'],
+    sort: [{ uploadTime: 'desc' }]
   }, {
     headers: {
       'Content-Type': 'application/json'
@@ -380,14 +383,14 @@ function parse(array) {
   const mark = {};
   const root = [];
   array.forEach(item => {
-    mark[item._id] = item;
+    mark[item.uuid] = item;
     item.id = Symbol();
     if (item.type === 'folder') item.files = [];
   });
   array.forEach(item => {
-    if (item.parent === null) root.push(item);
-    else mark[item.parent].files.push(item);
-    delete item.parent;
+    const [parent] = item._id?.split(':');
+    if (parent === 'root') root.push(item);
+    else mark[parent].files.push(item);
   });
   const files = new Set();
   array.forEach(item => item.type === 'file' ? files.add(`${item.digest}|${item.size}`) : '');
