@@ -289,7 +289,6 @@ async function setToken() {
 }
 
 async function search(name, parent) {
-  await new Promise(res => setTimeout(() => res(''), 700));
   await setToken(repository);
   const databaseName = repositoryUrl.replace(/\//g, '-').replace(/\./g, '_');
   const { data } = await client.post(`${repository.databaseURL}/${databaseName}/_partition/${parent}/_find`, {
