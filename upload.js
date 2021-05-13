@@ -47,7 +47,7 @@ const preset = {
 async function errorHandler(error) {
   const config = error.config;
   if (error.response) {
-    if (!config || [401, 404, 504].some(status => error.response.status === status)) {
+    if (!config || [401, 404, 409, 504].some(status => error.response.status === status)) {
       return await Promise.reject(error);
     }
     console.log('请求出错，HTTP状态码：' + error.response.status);
@@ -295,7 +295,7 @@ async function search(name, parent) {
     selector: {
       name: { $eq: name }
     },
-    fields: ['_id', 'name', 'type', 'digest', 'size', 'uploadTime']
+    fields: ['_id', 'name', 'type', 'digest', 'size', 'uploadTime', 'uuid'],
   }, {
     headers: {
       'Content-Type': 'application/json'
@@ -309,47 +309,98 @@ async function update(item, parent) {
   const databaseName = repositoryUrl.replace(/\//g, '-').replace(/\./g, '_');
   delete item.files;
   if (item._id) {
+    const [parentID, id] = item._id.split(':');
+    const isModifyName = id !== `${crypto.createHash('md5').update(item.name).digest('hex')}`, isModifyParent = parentID !== parent;
     try {
-      const { headers } = await client.head(`${repository.databaseURL}/${databaseName}/${item._id}`);
-      if (headers['etag']) item._rev = headers['etag'].replace(/"/g, '');
-      else throw '';
+      if (isModifyName || isModifyParent) {
+        item._id = `${parent}:${crypto.createHash('md5').update(item.name).digest('hex')}`;
+      } else {
+        const { headers } = await client.head(`${repository.databaseURL}/${databaseName}/${item._id}`);
+        if (headers['etag']) item._rev = headers['etag'].replace(/.*"([^"]+)".*/, '$1');
+        else throw '';
+      }
     }
     catch (error) {
       throw `"${item.name}" doesn't exist`;
     }
+    try {
+      const { data } = await client.post(`${repository.databaseURL}/${databaseName}`, item, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      return item.type === 'file' ? data.id.split(':')[1] : item.uuid;
+    }
+    catch (error) {
+      if (error.response) {
+        if (error.response.status === 409 && error.response.data.error === 'conflict') {
+          if (!isModifyName && !isModifyParent) {
+            const { headers } = await client.head(`${repository.databaseURL}/${databaseName}/${item._id}`);
+            if (headers['etag']) item._rev = headers['etag'].replace(/.*"([^"]+)".*/, '$1');
+            else throw error;
+            const { data } = await client.post(`${repository.databaseURL}/${databaseName}`, item, {
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            });
+            return item.type === 'file' ? data.id.split(':')[1] : item.uuid;
+          }
+        }
+      }
+      throw error;
+    }
   }
   else {
-    const { data } = await client.get(`${repository.databaseURL}/_uuids`);
-    item._id = `${parent}:${data.uuids[0]}`;
-  }
-  try {
-    const { data } = await client.post(`${repository.databaseURL}/${databaseName}`, item, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    return data.id.split(':')[1];
-  }
-  catch (error) {
-    if (error.response) {
-      if (error.response.status === 409 && error.response.data?.error === 'conflict') {
-        const { headers } = await client.head(`${repository.databaseURL}/${databaseName}/${item._id}`);
-        if (headers['etag']) item._rev = headers['etag'].replaceAll('"', '');
-        else throw error;
-        const { data } = await client.post(`${repository.databaseURL}/${databaseName}`, item, {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        return data.id.split(':')[1];
-      }
+    if (item.type === 'folder') {
+      const { data } = await client.get(`${repository.databaseURL}/_uuids`);
+      item.uuid = data.uuids[0];
     }
-    throw error;
+    item._id = `${parent}:${crypto.createHash('md5').update(item.name).digest('hex')}`;
+    try {
+      const { data } = await client.post(`${repository.databaseURL}/${databaseName}`, item, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      return item.type === 'file' ? data.id.split(':')[1] : item.uuid;
+    }
+    catch (error) {
+      if (error.response && error.response.status === 409 && error.response.data.error === 'conflict') {
+        if (item.type === 'folder') return item.uuid;
+        else {
+          let finalName = item.name, finalId = item._id, index = 0, exist = true;
+          let [, name, ext] = item.name.match(/(.*)(\.[^.]*)$/) || [];
+          if (!name) {
+            name = item.name;
+            ext = '';
+          }
+          while (exist) {
+            finalName = `${name} (${++index})${ext}`;
+            try {
+              const { data } = await client.get(`${repository.databaseURL}/${databaseName}/${finalId}`);
+              if (data.digest === item.digest) throw '文件已存在';
+              finalId = `${parent}:${crypto.createHash('md5').update(item.name).digest('hex')}`;
+              await client.post(`${repository.databaseURL}/${databaseName}`, Object.assign(item, { _id: finalId, name: finalName }), {
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              });
+              exist = false;
+              return finalId.split(':')[1];
+            }
+            catch (error) {
+              if (error.response && error.response.status !== 409 || error.response.data.error !== 'conflict') throw error;
+            }
+          }
+        }
+      }
+      throw error;
+    }
   }
 }
 
 async function add(paths, item) {
-  const id = await paths.reduce(async (parentId, path) => {
+  const parent = await paths.reduce(async (parentId, path) => {
     const [folder] = await search(path, await parentId);
     if (folder) {
       folder.uploadTime = item.uploadTime;
@@ -362,22 +413,7 @@ async function add(paths, item) {
       uploadTime: item.uploadTime
     }, await parentId);
   }, 'root');
-  if (item.type === 'folder') {
-    await update(item, id);
-  }
-  else {
-    let finalName = item.name, index = 0, file;
-    let [, name, ext] = item.name.match(/(.*)(\.[^.]*)$/) || [];
-    if (!name) {
-      name = item.name;
-      ext = '';
-    }
-    while (([file] = await search(finalName, id)).length > 0) {
-      if (file && file.digest === item.digest) return;
-      finalName = `${name} (${++index})${ext}`;
-    }
-    await update(Object.assign(item, { name: finalName }), id);
-  }
+  await this.update(item, parent);
 }
 
 async function list() {
@@ -399,12 +435,14 @@ function parse(array) {
   const mark = {};
   const root = [];
   array.forEach(item => {
-    mark[item._id.split(':')[1]] = item;
     item.id = Symbol();
-    if (item.type === 'folder') item.files = [];
+    if (item.type === 'folder') {
+      mark[item.uuid] = item;
+      item.files = [];
+    }
   });
   array.forEach(item => {
-    const [parent] = item._id?.split(':');
+    const [parent] = item._id.split(':');
     if (parent === 'root') root.push(item);
     else mark[parent].files.push(item);
   });
