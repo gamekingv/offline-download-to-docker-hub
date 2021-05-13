@@ -68,7 +68,9 @@ axios.interceptors.response.use(undefined, errorHandler);
 axios.defaults.maxContentLength = Infinity;
 axios.defaults.maxBodyLength = Infinity;
 
-const client = axios.create();
+const client = axios.create({
+  timeout: 60000
+});
 client.interceptors.response.use(undefined, errorHandler);
 
 async function requestSender(url, instance) {
