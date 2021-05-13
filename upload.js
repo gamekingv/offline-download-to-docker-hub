@@ -46,6 +46,7 @@ const preset = {
 
 async function errorHandler(error) {
   const config = error.config;
+  console.log(error.config.url);
   if (error.response) {
     if (!config || [401, 404, 409, 504].some(status => error.response.status === status)) {
       return await Promise.reject(error);
@@ -421,7 +422,7 @@ async function list() {
   const databaseName = repositoryUrl.replace(/\//g, '-').replace(/\./g, '_');
   const { data } = await client.post(`${repository.databaseURL}/${databaseName}/_find`, {
     selector: { _id: { $gt: '0' } },
-    fields: ['_id', 'name', 'type', 'digest', 'size', 'uploadTime'],
+    fields: ['_id', 'name', 'type', 'digest', 'size', 'uploadTime', 'uuid'],
     sort: [{ uploadTime: 'desc' }]
   }, {
     headers: {
