@@ -46,7 +46,6 @@ const preset = {
 
 async function errorHandler(error) {
   const config = error.config;
-  console.log(error.config.url);
   if (error.response) {
     if (!config || [401, 404, 409, 504].some(status => error.response.status === status)) {
       return await Promise.reject(error);
