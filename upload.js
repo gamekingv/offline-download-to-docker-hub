@@ -413,7 +413,7 @@ async function add(paths, item) {
       uploadTime: item.uploadTime
     }, await parentId);
   }, 'root');
-  await this.update(item, parent);
+  await update(item, parent);
 }
 
 async function list() {
