@@ -525,6 +525,7 @@ function mapDirectory(root) {
   if (!fs.existsSync('Offline')) return console.log('无文件需要上传');
   const files = mapDirectory('Offline');
   const { layers } = await getManifests();
+  const uploadedFiles = [];
   let uploadedCount = 0;
   if (workflow_name === 'decompression-download') ignoreFilters.push(/\.zip$/, /\.rar$/);
   for (const file of files) {
@@ -561,6 +562,8 @@ function mapDirectory(root) {
         mediaType: 'application/vnd.docker.image.rootfs.diff.tar.gzip',
         size
       });
+      uploadedFiles.push(file);
+      fs.writeFileSync('uploaded-list.txt', JSON.stringify(uploadedFiles));
       uploadedCount++;
       if (uploadedCount >= 50) {
         await synchronize();

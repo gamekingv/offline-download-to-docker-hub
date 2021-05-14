@@ -61,26 +61,9 @@ async function triggerNext() {
   });
 }
 
-function mapDirectory(root) {
-  const filesArr = [];
-  root += '/';
-  (function dir(dirpath) {
-    const files = fs.readdirSync(dirpath);
-    files.forEach((item) => {
-      const info = fs.statSync(dirpath + item);
-      if (info.isDirectory()) {
-        dir(dirpath + item + '/');
-      } else {
-        filesArr.push(dirpath + item);
-      }
-    });
-  })(root);
-  return filesArr;
-}
-
 (async () => {
   try {
-    const uploadedFiles = mapDirectory('Offline');
+    const uploadedFiles = JSON.parse(fs.readFileSync('uploaded-list.txt'));
     const files = JSON.parse(fs.readFileSync('google-drive-list.json'));
     const remainFiles = files.filter(file => !uploadedFiles.some(uploadedFile => uploadedFile === `${file.path}/${file.name}`));
     await saveDownloadedList('google-drive-list.json', JSON.stringify(remainFiles, null, 2));
