@@ -1,2 +1,1 @@
-magnet:?xt=urn:btih:43673bc829cfc4c8e27f34e94916cce79183de3c
-  select-file=224-269
+https://ev.phncdn.com/videos/202009/01/347847471/1080P_4000K_347847471.mp4?validfrom=1621091485&validto=1621098685&rate=50000k&burst=50000k&ipa=35.194.136.34&hash=PGeePrGhV9K5LDR%2FFS6bm8hEAwg%3D
