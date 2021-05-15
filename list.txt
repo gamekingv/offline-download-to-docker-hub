@@ -1,2 +1,2 @@
-magnet:?xt=urn:btih:c92c4bd7c199cd88b99e49a3082bf2ee17d659dd
-  select-file=134-179
+magnet:?xt=urn:btih:43673bc829cfc4c8e27f34e94916cce79183de3c
+  select-file=1-55
