@@ -1,2 +1,2 @@
-http://ccr-1253687700.cn-south.myqcloud.com/docker%2Fregistry%2Fv2%2Fblobs%2Fsha256%2Fd9%2Fd96af85187b924f1882dfc162410ce8ce4e78e07f5f2d486274e4398693ae840%2Fdata?q-sign-algorithm=sha1&q-ak=AKIDQRmsg7xgYDfqkOJGXWG7vqXy8H9VKR0H&q-sign-time=1621077211%3B1621078411&q-key-time=1621077211%3B1621078411&q-header-list=host&q-url-param-list=&q-signature=4026db00bf97ac86bb452f81751086f62c73c06c
-  out=1.torrent
+magnet:?xt=urn:btih:c92c4bd7c199cd88b99e49a3082bf2ee17d659dd
+  select-file=1-64
