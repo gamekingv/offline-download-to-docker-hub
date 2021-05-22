@@ -59,7 +59,7 @@ function mapDirectory(root) {
     console.log('');
     downloadedFiles.forEach(file => console.log(file));
     console.log('');
-    const removeFiles = downloadedFiles.filter(file => selectedFiles.every(selectedFile => `Offline/${selectedFile.name}` === file.name));
+    const removeFiles = downloadedFiles.filter(file => selectedFiles.every(selectedFile => `Offline/${selectedFile.name}` === file));
     if (removeFiles.length > 0) {
       console.log('清理多余文件：');
       for (const file of removeFiles) {
