@@ -42,7 +42,7 @@ function mapDirectory(root) {
     const torrent = (await fsp.readdir('./Offline')).find((item) => /\.torrent$/.test(item));
     if (!torrent) throw '读取种子文件失败';
     const files = [];
-    const { stdout: output, stderr } = await exec(`aria2c -S "${torrent}"`);
+    const { stdout: output, stderr } = await exec(`aria2c -S "Offline/${torrent}"`);
     if (stderr) throw stderr;
     if (output) {
       const list = processOutput(output);
