@@ -1,2 +1,2 @@
-magnet:?xt=urn:btih:e52d45604c1131afb664b92c995afdf3242b5e8b&dn=%5BAnimeRG%5D%20One%20Piece%20%28Episodes%20001-837%29%20Seasons%2001-19%20%5B1080p%5D%20%5BDual-Audio%5D%20%5BMulti-Sub%5D%20%5BHEVC%5D%20%5Bx265%5D%20%5BUltimate%20Batch%202018%5D%20%5Bpseudo%5D&tr=http%3A%2F%2Fnyaa.tracker.wf%3A7777%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce
-  select-file=2,842,843
+magnet:?xt=urn:btih:01853247a15614ed144a9ab8a96ca5c9698f7dab
+  select-file=313,315,317,319,321,323,325,327,329,331,333,335,337,339,341,343,345
