@@ -51,6 +51,12 @@ function mapDirectory(root) {
     else throw 'Aria2命令无输出';
     const selectedFiles = files.filter(file => selected.some(index => index === file.index));
     const downloadedFiles = mapDirectory('Offline');
+    files.forEach(file => console.log(file));
+    console.log('');
+    selected.forEach(file => console.log(file));
+    console.log('');
+    selectedFiles.forEach(file => console.log(file));
+    console.log('');
     downloadedFiles.forEach(file => console.log(file));
     console.log('');
     const removeFiles = downloadedFiles.filter(file => selectedFiles.every(selectedFile => `Offline/${selectedFile.name}` === file.name));
