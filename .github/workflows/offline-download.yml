@@ -53,6 +53,11 @@ jobs:
           cat list.txt
           aria2c --conf-path=aria2.conf --bt-save-metadata=true -i list.txt
 
+      # 清理多余文件
+      - name: Remove
+        run: |
+          node remove.js
+
       # 上传
       - name: Upload
         run: |
