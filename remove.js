@@ -56,7 +56,7 @@ function mapDirectory(root) {
       console.log('清理多余文件：');
       for (const file of removeFiles) {
         console.log(file);
-        fs.unlink(file);
+        await fsp.unlink(file);
       }
     }
   }
