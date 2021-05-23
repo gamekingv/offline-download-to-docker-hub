@@ -1,2 +1,2 @@
 magnet:?xt=urn:btih:2a03ee92cf38eded0402725b7a823904d8ea65e0
-  select-file=507,509,511
+  select-file=513
