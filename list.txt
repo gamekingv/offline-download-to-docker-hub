@@ -1,3 +1,3 @@
 http://ccr-1253687700.cn-south.myqcloud.com/docker%2Fregistry%2Fv2%2Fblobs%2Fsha256%2F23%2F2315fd8934ae2ca2fbcec0ad0d38b14c29339cbc88972bf86180098ac3324e8d%2Fdata?q-sign-algorithm=sha1&q-ak=AKIDQRmsg7xgYDfqkOJGXWG7vqXy8H9VKR0H&q-sign-time=1621760361%3B1621761561&q-key-time=1621760361%3B1621761561&q-header-list=host&q-url-param-list=&q-signature=b06208a93510861de4dbc5680fb20ed572cb8149
   out=test.torrent
-  select-file=1-10
+  select-file=1,3,5,7,9,11,13
