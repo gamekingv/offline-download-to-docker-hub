@@ -50,7 +50,7 @@ jobs:
         if: ${{ github.event.inputs.type == '' }}
         run: |
           cat big-torrent-list.txt
-          aria2c --conf-path=aria2.conf --bt-metadata-only=true --bt-save-metadata=true --follow-torrent=false --dir=./ --input-file=big-torrent-list.txt
+          aria2c --conf-path=aria2.conf --bt-metadata-only=true --bt-save-metadata=true --follow-torrent=false --dir=./ -i big-torrent-list.txt
 
       # 解析种子
       - name: Analyze
@@ -60,8 +60,24 @@ jobs:
       # 下载
       - name: Download
         run: |
-          cat big-torrent.txt
-          aria2c --conf-path=aria2.conf --bt-metadata-only=true --bt-save-metadata=true --follow-torrent=false --dir=./ --input-file=big-torrent.txt
+          cat list.txt
+          aria2c --conf-path=aria2.conf --bt-save-metadata=true -i list.txt
+
+      # 清理多余文件
+      - name: Remove
+        run: |
+          node remove.js
+
+      # 上传
+      - name: Upload
+        run: |
+          node upload.js
+        env:
+          QUEUE_DD_URL: ${{ secrets.URL }}
+          QUEUE_DD_USERNAME: ${{ secrets.USERNAME }}
+          QUEUE_DD_PASSWORD: ${{ secrets.PASSWORD }}
+          QUEUE_DB_URL: ${{ secrets.DB_URL }}
+          QUEUE_DB_APIKEY: ${{ secrets.DB_APIKEY }}
 
       # 执行剩余任务
       - name: Dispatch Next Task
