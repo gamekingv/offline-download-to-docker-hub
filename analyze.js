@@ -8,7 +8,7 @@ const {
 } = process.env;
 
 function processOutput(output, lastIndex = 0) {
-  const maxSize = 100 * 1024 * 1024;
+  const maxSize = 1024 * 1024 * 1024;
   const singleFileMaxSize = 12 * 1024 * 1024 * 1024;
   const [header, result] = output.split('\n===+===========================================================================\n');
   const hash = header.match(/Info Hash:\s*(.*)/)[1];
