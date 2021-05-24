@@ -2,22 +2,9 @@ const fs = require('fs').promises;
 const child_process = require('child_process');
 const { promisify } = require('util');
 const exec = promisify(child_process.exec);
-const got = require('got');
 
-const {
-  GITHUB_REPOSITORY: repository,
-  QUEUE_DISPATCH_TOKEN: token
-} = process.env;
 
-const client = got.extend({
-  headers: {
-    'User-Agent': 'Github Actions'
-  },
-  timeout: 10000,
-  responseType: 'json'
-});
-
-function processOutput(output) {
+function processOutput(output, lastIndex = 0) {
   const maxSize = 400 * 1024 * 1024;
   const singleFileMaxSize = 12 * 1024 * 1024 * 1024;
   const [header, result] = output.split('\n===+===========================================================================\n');
@@ -28,7 +15,7 @@ function processOutput(output) {
   const matchResult = filterResult.map(item => {
     const [, index, name, size] = item.match(/^\s*(\d+)\|(.*)\n\s*\|[^(]+ \(([^)]+)\)$/);
     return { index: Number(index), name, size: Number(size.replace(/,/g, '')) };
-  });
+  }).filter(item => item.index > lastIndex);
   const queue = [];
   let totalSizeTemp = 0;
   let taskTemp = [];
@@ -56,7 +43,7 @@ function processOutput(output) {
       }
       else return result += `${file},`;
     }, '');
-    return `magnet:?xt=urn:btih:${hash}\r\n  select-file=${list.slice(0, -1)}`;
+    return `${list.slice(0, -1)}`;
   });
   if (bigFiles.length > 0) {
     console.log('以下文件因过大而忽略：');
@@ -66,58 +53,27 @@ function processOutput(output) {
   return taskList;
 }
 
-async function sendToDownload(remote, local) {
-  const content = Buffer.from(local).toString('base64'),
-    configLink = remote,
-    body = {
-      message: '大文件种子下载推送',
-      content
-    },
-    headers = {
-      'Authorization': `token ${token}`,
-      'User-Agent': 'Github Actions'
-    };
-  if (!content) return 'empty';
-  const response = await client.get(configLink, {
-    headers
-  });
-  body.sha = response.body.sha;
-  await client.put(configLink, {
-    headers,
-    json: body
-  });
-}
-
 (async () => {
   try {
     const files = await fs.readdir('./');
-    const torrents = files.filter((item) => /\.torrent$/.test(item));
+    const torrent = files.find((item) => /\.torrent$/.test(item));
     const tasks = [];
-    for (const torrent of torrents) {
-      const { stdout: output, stderr } = await exec(`aria2c -S "${torrent}"`);
-      if (stderr) throw stderr;
-      if (output) {
-        const list = processOutput(output);
-        tasks.push(...list);
-      }
-      else '命令无输出';
+    if (!torrent) throw '获取种子文件失败';
+    const event = JSON.parse(await fs.readFile(GITHUB_EVENT_PATH));
+    const {
+      file: lastIndex
+    } = event.inputs || {};
+    const { stdout: output, stderr } = await exec(`aria2c -S "${torrent}"`);
+    if (stderr) throw stderr;
+    if (output) {
+      const list = processOutput(output, Number(lastIndex));
+      tasks.push(...list);
     }
-    for (const task of tasks) {
-      try {
-        await sendToDownload(`https://api.github.com/repos/${repository}/contents/list.txt`, task);
-        console.log('');
-        console.log(task);
-        console.log('任务发送成功');
-        await new Promise(res => setTimeout(() => res(), 30000));
-      }
-      catch (error) {
-        console.log('');
-        console.log(task);
-        console.log('任务发送失败：');
-        console.log(error);
-        if (error.response && error.response.body) console.log(error.response.body);
-      }
-    }
+    else 'Aria2解析种子命令无输出';
+    await fs.writeFile('big-torrent.txt', `${torrent}\r\n  select-file=${tasks[0]}`);
+    const last = tasks[0].match(/,?(\d+)$/)[1];
+    if (tasks.length === 1) await fs.writeFile('last-file.txt', 'none');
+    else await fs.writeFile('last-file.txt', last);
   }
   catch (error) {
     console.log(error);
