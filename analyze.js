@@ -30,9 +30,16 @@ function processOutput(output, lastIndex = 0) {
     }
     totalSizeTemp += item.size;
     if (totalSizeTemp >= maxSize) {
-      queue.push(taskTemp);
-      taskTemp = [];
-      totalSizeTemp = item.size;
+      if (taskTemp.length === 0) {
+        queue.push([item.index]);
+        totalSizeTemp = 0;
+        return;
+      }
+      else {
+        queue.push(taskTemp);
+        taskTemp = [];
+        totalSizeTemp = item.size;
+      }
     }
     taskTemp.push(item.index);
     if (index === matchResult.length - 1) queue.push(taskTemp);
