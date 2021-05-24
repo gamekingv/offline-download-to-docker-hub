@@ -44,7 +44,8 @@ function processOutput(output, lastIndex = 0) {
         else if (result.charAt(result.length - 1) !== '-') return result += '-';
         else return result;
       }
-      else return result += `${file},`;
+      else if (result.charAt(result.length - 1) === '-') return result += `${file},`;
+      else return result += `,${file},`;
     }, '');
     return `${list.slice(0, -1)}`;
   });
