@@ -55,6 +55,8 @@ jobs:
       # 解析种子
       - name: Analyze
         run: |
+          mkdir Offline
+          cp *.torrent Offline
           node analyze.js
 
       # 下载
