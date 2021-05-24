@@ -3,6 +3,9 @@ const child_process = require('child_process');
 const { promisify } = require('util');
 const exec = promisify(child_process.exec);
 
+const {
+  GITHUB_EVENT_PATH
+} = process.env;
 
 function processOutput(output, lastIndex = 0) {
   const maxSize = 400 * 1024 * 1024;
