@@ -37,7 +37,7 @@ jobs:
           node fetchtracker.js
 
       # 下载种子
-      - name: Get Torrent
+      - name: Save Torrent
         if: ${{ github.event.inputs.type == 'torrent' }}
         run: |
           node saveTorrent.js
@@ -46,7 +46,7 @@ jobs:
         run: |
           echo "${{ github.event.inputs.torrent }}"
           aria2c --conf-path=aria2.conf --bt-metadata-only=true --bt-save-metadata=true --follow-torrent=false --dir=./ "${{ github.event.inputs.torrent }}"
-      - name: Get Magnet
+      - name: Get Torrent
         if: ${{ github.event.inputs.type == '' }}
         run: |
           cat big-torrent-list.txt
