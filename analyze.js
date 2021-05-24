@@ -18,7 +18,7 @@ function processOutput(output, lastIndex = 0) {
   const matchResult = filterResult.map(item => {
     const [, index, name, size] = item.match(/^\s*(\d+)\|(.*)\n\s*\|[^(]+ \(([^)]+)\)$/);
     return { index: Number(index), name, size: Number(size.replace(/,/g, '')) };
-  }).filter(item => item.index > lastIndex);
+  }).filter(item => item.index > Number(lastIndex));
   const queue = [];
   let totalSizeTemp = 0;
   let taskTemp = [];
@@ -69,10 +69,11 @@ function processOutput(output, lastIndex = 0) {
     const { stdout: output, stderr } = await exec(`aria2c -S "${torrent}"`);
     if (stderr) throw stderr;
     if (output) {
-      const list = processOutput(output, Number(lastIndex));
+      const list = processOutput(output, lastIndex);
       tasks.push(...list);
     }
-    else 'Aria2解析种子命令无输出';
+    else throw 'Aria2解析种子命令无输出';
+    if (!tasks[0]) throw '分解种子任务失败';
     await fs.writeFile('big-torrent.txt', `${torrent}\r\n  select-file=${tasks[0]}`);
     const last = tasks[0].match(/,?(\d+)$/)[1];
     if (tasks.length === 1) await fs.writeFile('last-file.txt', 'none');
