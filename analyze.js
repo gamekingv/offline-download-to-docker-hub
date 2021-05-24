@@ -75,7 +75,7 @@ function processOutput(output, lastIndex = 0) {
     else throw 'Aria2解析种子命令无输出';
     if (!tasks[0]) throw '分解种子任务失败';
     await fs.writeFile('big-torrent.txt', `${torrent}\r\n  select-file=${tasks[0]}`);
-    const last = tasks[0].match(/,?(\d+)$/)[1];
+    const last = tasks[0].match(/[-,]?(\d+)$/)[1];
     if (tasks.length === 1) await fs.writeFile('last-file.txt', 'none');
     else await fs.writeFile('last-file.txt', last);
   }
