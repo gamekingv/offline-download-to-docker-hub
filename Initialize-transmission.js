@@ -2,7 +2,7 @@ const fs = require('fs').promises;
 
 (async () => {
   try {
-    const settings = JSON.parse(fs.readFile('/etc/transmission-daemon/settings.json'));
+    const settings = JSON.parse(await fs.readFile('/etc/transmission-daemon/settings.json'));
     Object.assign(settings, {
       'download-dir': `${__dirname}/Offline`,
       'rpc-authentication-required': 0
