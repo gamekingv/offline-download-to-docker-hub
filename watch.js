@@ -46,6 +46,7 @@ function formatTime(time) {
 
 (async () => {
   try {
+    console.log('start');
     let timeout = false, finished = false;
     setTimeout(() => timeout = true, 5.5 * 60 * 60 * 1000);
     while (timeout || finished) {
