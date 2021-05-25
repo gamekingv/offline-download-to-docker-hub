@@ -63,10 +63,12 @@ function processOutput(output, lastIndex = 0) {
   const hash = header.match(/  Hash: (.*)/)[1];
   const filterResult = list.replace(/\n*$/, '').split('\n  ');
   filterResult.shift();
-  const matchResult = filterResult.map((item, index) => {
+  const files = filterResult.map((item, index) => {
     const [, name, size, unit] = item.match(/^(.*) \((.*?) (P|T|G|M|k)?B\)$/);
     return { index: index + 1, name, size: formatSize(size, unit) };
-  }).filter(item => item.index > Number(lastIndex)).filter(item => !/_____padding_file_\d+_/.test(item.name));
+  }).filter(item => item.index > Number(lastIndex));
+  const paddingFiles = files.filter(item => /_____padding_file_\d+_/.test(item.name)).map(item => item.index);
+  const matchResult = files.filter(item => !/_____padding_file_\d+_/.test(item.name));
   const queue = [];
   let totalSizeTemp = 0;
   let taskTemp = [];
@@ -97,6 +99,7 @@ function processOutput(output, lastIndex = 0) {
     console.log(`magnet:?xt=urn:btih:${hash}`);
   }
   bigFiles.forEach(file => console.log(file));
+  queue.push(paddingFiles);
   return queue;
 }
 
@@ -112,8 +115,10 @@ function processOutput(output, lastIndex = 0) {
     } = event.inputs || {};
     const { stdout: output, stderr } = await exec(`transmission-show "${torrent}"`);
     if (stderr) throw stderr;
+    let paddingFiles;
     if (output) {
       const list = processOutput(output, lastIndex);
+      paddingFiles = list.pop();
       tasks.push(...list);
     }
     else throw 'Aria2解析种子命令无输出';
@@ -129,7 +134,7 @@ function processOutput(output, lastIndex = 0) {
         json: {
           method: 'torrent-add',
           arguments: {
-            'files-unwanted': tasks.flat(),
+            'files-unwanted': tasks.flat().concat(paddingFiles),
             paused: false,
             metainfo: torrentBase64
           }
