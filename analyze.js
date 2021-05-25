@@ -130,6 +130,7 @@ function processOutput(output, lastIndex = 0) {
     else {
       await fs.writeFile('last-file.txt', `${last}`);
       const torrentBase64 = (await fs.readFile(torrent)).toString('base64');
+      console.log(JSON.stringify(tasks.flat().concat(paddingFiles), null, 2));
       await client.post('http://localhost:9091/transmission/rpc', {
         json: {
           method: 'torrent-add',
