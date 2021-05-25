@@ -61,12 +61,12 @@ function processOutput(output, lastIndex = 0) {
   const singleFileMaxSize = 12 * 1024 * 1024 * 1024;
   const [header, list] = output.split('\nFILES\n');
   const hash = header.match(/  Hash: (.*)/)[1];
-  const filterResult = list.replace(/\n*$/, '').split('\n  ').filter(item => !/_____padding_file_\d+_/.test(item));
+  const filterResult = list.replace(/\n*$/, '').split('\n  ');
   filterResult.shift();
   const matchResult = filterResult.map((item, index) => {
     const [, name, size, unit] = item.match(/^(.*) \((.*?) (P|T|G|M|k)?B\)$/);
     return { index: index + 1, name, size: formatSize(size, unit) };
-  }).filter(item => item.index > Number(lastIndex));
+  }).filter(item => !/_____padding_file_\d+_/.test(item.name)).filter(item => item.index > Number(lastIndex));
   const queue = [];
   let totalSizeTemp = 0;
   let taskTemp = [];
@@ -117,7 +117,7 @@ function processOutput(output, lastIndex = 0) {
       tasks.push(...list);
     }
     else throw 'Aria2解析种子命令无输出';
-    const task = tasks.pop();
+    const task = tasks.shift();
     if (!task) throw '分解种子任务失败';
     await fs.writeFile('list.txt', `${torrent}\r\n  select-file=${task.join(',')}`);
     const last = task[task.length - 1];
