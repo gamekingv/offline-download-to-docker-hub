@@ -43,6 +43,7 @@ async function executeTask({ torrent, file }) {
   }
   catch (error) {
     console.log(error);
+    if (error.response && error.response.body) console.log(error.response.body);
     process.exit(1);
   }
 })();

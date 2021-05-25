@@ -2,22 +2,70 @@ const fs = require('fs').promises;
 const child_process = require('child_process');
 const { promisify } = require('util');
 const exec = promisify(child_process.exec);
+const got = require('got');
 
 const {
   GITHUB_EVENT_PATH
 } = process.env;
 
+const client = got.extend({
+  timeout: 5000,
+  responseType: 'json',
+  hooks: {
+    afterResponse: [(response, retryWithMergedOptions) => {
+      if (response && response.statusCode === 409 && response.body) {
+        const updatedOptions = {
+          headers: {
+            'X-Transmission-Session-Id': response.headers['X-Transmission-Session-Id'.toLowerCase()]
+          }
+        };
+        client.defaults.options = got.mergeOptions(client.defaults.options, updatedOptions);
+        return retryWithMergedOptions(updatedOptions);
+      }
+      return response;
+    }]
+  }
+});
+
+function formatSize(size, unit) {
+  let byte = 0;
+  if (unit) formatUnit = unit.toUpperCase();
+  else byte = Number(size);
+  switch (formatUnit) {
+    case 'K': {
+      byte = Number(size) * 1024;
+      break;
+    }
+    case 'M': {
+      byte = Number(size) * 1024 * 1024;
+      break;
+    }
+    case 'G': {
+      byte = Number(size) * 1024 * 1024 * 1024;
+      break;
+    }
+    case 'T': {
+      byte = Number(size) * 1024 * 1024 * 1024 * 1024;
+      break;
+    }
+    case 'P': {
+      byte = Number(size) * 1024 * 1024 * 1024 * 1024 * 1024;
+      break;
+    }
+  }
+  return Math.ceil(byte);
+}
+
 function processOutput(output, lastIndex = 0) {
   const maxSize = 400 * 1024 * 1024;
   const singleFileMaxSize = 12 * 1024 * 1024 * 1024;
-  const [header, result] = output.split('\n===+===========================================================================\n');
-  const hash = header.match(/Info Hash:\s*(.*)/)[1];
-  const list = result.split('\n---+---------------------------------------------------------------------------\n');
-  const filterResult = list.filter(item => !/_____padding_file_\d+_/.test(item));
-  filterResult.pop();
-  const matchResult = filterResult.map(item => {
-    const [, index, name, size] = item.match(/^\s*(\d+)\|(.*)\n\s*\|[^(]+ \(([^)]+)\)$/);
-    return { index: Number(index), name, size: Number(size.replace(/,/g, '')) };
+  const [header, list] = output.split('\nFILES\n');
+  const hash = header.match(/  Hash: (.*)/)[1];
+  const filterResult = list.replace(/\n*$/, '').split('\n  ').filter(item => !/_____padding_file_\d+_/.test(item));
+  filterResult.shift();
+  const matchResult = filterResult.map((item, index) => {
+    const [, name, size, unit] = item.match(/^(.*) \((.*?) (P|T|G|M|k)?B\)$/);
+    return { index: index + 1, name, size: formatSize(size, unit) };
   }).filter(item => item.index > Number(lastIndex));
   const queue = [];
   let totalSizeTemp = 0;
@@ -44,24 +92,12 @@ function processOutput(output, lastIndex = 0) {
     taskTemp.push(item.index);
     if (index === matchResult.length - 1) queue.push(taskTemp);
   });
-  const taskList = queue.map(files => {
-    const list = files.reduce((result, file, index) => {
-      if (file === files[index + 1] - 1) {
-        if (result.charAt(result.length - 1) === ',' || result.length === 0) return result += `${file}`;
-        else if (result.charAt(result.length - 1) !== '-') return result += '-';
-        else return result;
-      }
-      else if (result.charAt(result.length - 1) === ',' || result.charAt(result.length - 1) === '-' || result.length === 0) return result += `${file},`;
-      else return result += `,${file},`;
-    }, '');
-    return `${list.slice(0, -1)}`;
-  });
   if (bigFiles.length > 0) {
     console.log('以下文件因过大而忽略：');
     console.log(`magnet:?xt=urn:btih:${hash}`);
   }
   bigFiles.forEach(file => console.log(file));
-  return taskList;
+  return queue;
 }
 
 (async () => {
@@ -74,21 +110,37 @@ function processOutput(output, lastIndex = 0) {
     const {
       file: lastIndex
     } = event.inputs || {};
-    const { stdout: output, stderr } = await exec(`aria2c -S "${torrent}"`);
+    const { stdout: output, stderr } = await exec(`transmission-show "${torrent}"`);
     if (stderr) throw stderr;
     if (output) {
       const list = processOutput(output, lastIndex);
       tasks.push(...list);
     }
     else throw 'Aria2解析种子命令无输出';
-    if (!tasks[0]) throw '分解种子任务失败';
-    await fs.writeFile('list.txt', `${torrent}\r\n  select-file=${tasks[0]}`);
-    const last = tasks[0].match(/[-,]?(\d+)$/)[1];
-    if (tasks.length === 1) await fs.writeFile('last-file.txt', 'none');
-    else await fs.writeFile('last-file.txt', last);
+    const task = tasks.pop();
+    if (!task) throw '分解种子任务失败';
+    await fs.writeFile('list.txt', `${torrent}\r\n  select-file=${task.join(',')}`);
+    const last = task[task.length - 1];
+    if (tasks.length === 0) await fs.writeFile('last-file.txt', 'none');
+    else {
+      await fs.writeFile('last-file.txt', last);
+      const torrentBase64 = (await fs.readFile(torrent)).toString('base64');
+      await client.post('http://172.22.142.63:9091/transmission/rpc', {
+        json: {
+          method: 'torrent-add',
+          arguments: {
+            'files-unwanted': tasks.flat(),
+            paused: false,
+            'download-dir': `${__dirname}/Offline`,
+            metainfo: torrentBase64
+          }
+        }
+      });
+    }
   }
   catch (error) {
     console.log(error);
+    if (error.response && error.response.body) console.log(error.response.body);
     process.exit(1);
   }
 })();

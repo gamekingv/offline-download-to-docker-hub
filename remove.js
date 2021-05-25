@@ -5,13 +5,12 @@ const { promisify } = require('util');
 const exec = promisify(child_process.exec);
 
 function processOutput(output) {
-  const [, result] = output.split('\n===+===========================================================================\n');
-  const list = result.split('\n---+---------------------------------------------------------------------------\n');
-  const filterResult = list.filter(item => !/_____padding_file_\d+_/.test(item));
-  filterResult.pop();
-  const matchResult = filterResult.map(item => {
-    const [, index, name, size] = item.match(/^\s*(\d+)\|\s*\.\/(.*)\n\s*\|[^(]+ \(([^)]+)\)$/);
-    return { index: Number(index), name, size: Number(size.replace(/,/g, '')) };
+  const [, list] = output.split('\nFILES\n');
+  const filterResult = list.replace(/\n*$/, '').split('\n  ').filter(item => !/_____padding_file_\d+_/.test(item));
+  filterResult.shift();
+  const matchResult = filterResult.map((item, index) => {
+    const [, name,] = item.match(/^(.*)\((.*?) (P|T|G|M|k)?B\)$/);
+    return { index: index + 1, name };
   });
   return matchResult;
 }
@@ -42,7 +41,7 @@ function mapDirectory(root) {
     const torrent = (await fsp.readdir('./Offline')).find((item) => /\.torrent$/.test(item));
     if (!torrent) throw '读取种子文件失败';
     const files = [];
-    const { stdout: output, stderr } = await exec(`aria2c -S "Offline/${torrent}"`);
+    const { stdout: output, stderr } = await exec(`transmission-show "Offline/${torrent}"`);
     if (stderr) throw stderr;
     if (output) {
       const list = processOutput(output);
