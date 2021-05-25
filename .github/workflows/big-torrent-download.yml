@@ -37,7 +37,7 @@ jobs:
           npm install
           node fetchtracker.js
           sudo node Initialize-transmission.js
-          sudo service transmission-daemon start
+          sudo service transmission-daemon restart
 
       # 下载种子
       - name: Save Torrent
