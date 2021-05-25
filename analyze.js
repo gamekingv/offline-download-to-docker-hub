@@ -135,7 +135,6 @@ function processOutput(output, lastIndex = 0) {
           }
         }
       });
-      console.log(JSON.stringify(body, null, 2));
     }
   }
   catch (error) {
