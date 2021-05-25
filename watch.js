@@ -66,7 +66,7 @@ function formatTime(time) {
         }
       });
       const torrent = body.arguments.torrents[0];
-      console.log(body.arguments.torrents);
+      console.log(body);
       if (!torrent) {
         finished = true;
         continue;
