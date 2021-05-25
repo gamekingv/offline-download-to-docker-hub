@@ -131,7 +131,6 @@ function processOutput(output, lastIndex = 0) {
           arguments: {
             'files-unwanted': tasks.flat(),
             paused: false,
-            'download-dir': `${__dirname}/Offline`,
             metainfo: torrentBase64
           }
         }
