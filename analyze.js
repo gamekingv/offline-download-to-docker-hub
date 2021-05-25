@@ -123,7 +123,7 @@ function processOutput(output, lastIndex = 0) {
     const last = task[task.length - 1];
     if (tasks.length === 0) await fs.writeFile('last-file.txt', 'none');
     else {
-      await fs.writeFile('last-file.txt', last);
+      await fs.writeFile('last-file.txt', `${last}`);
       const torrentBase64 = (await fs.readFile(torrent)).toString('base64');
       await client.post('http://172.22.142.63:9091/transmission/rpc', {
         json: {
