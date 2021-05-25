@@ -23,7 +23,7 @@ let client = got.extend({
 
 function formatSize(size, denominator = 1024) {
   if (size < denominator) return `${size} B`;
-  else if (size < Math.pow(denominator, 2)) return `${size / denominator} KB`;
+  else if (size < Math.pow(denominator, 2)) return `${(size / denominator).toFixed(0)} KB`;
   else if (size < Math.pow(denominator, 3)) return `${(size / Math.pow(denominator, 2)).toFixed(2)} MB`;
   else if (size < Math.pow(denominator, 4)) return `${(size / Math.pow(denominator, 3)).toFixed(2)} GB`;
   else if (size < Math.pow(denominator, 5)) return `${(size / Math.pow(denominator, 4)).toFixed(2)} TB`;
