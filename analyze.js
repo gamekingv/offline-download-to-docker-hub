@@ -33,23 +33,23 @@ function formatSize(size, unit) {
   else byte = Number(size);
   switch (formatUnit) {
     case 'K': {
-      byte = Number(size) * 1024;
+      byte = Number(size) * 1000;
       break;
     }
     case 'M': {
-      byte = Number(size) * 1024 * 1024;
+      byte = Number(size) * Math.pow(1000, 2);
       break;
     }
     case 'G': {
-      byte = Number(size) * 1024 * 1024 * 1024;
+      byte = Number(size) * Math.pow(1000, 3);
       break;
     }
     case 'T': {
-      byte = Number(size) * 1024 * 1024 * 1024 * 1024;
+      byte = Number(size) * Math.pow(1000, 4);
       break;
     }
     case 'P': {
-      byte = Number(size) * 1024 * 1024 * 1024 * 1024 * 1024;
+      byte = Number(size) * Math.pow(1000, 5);
       break;
     }
   }

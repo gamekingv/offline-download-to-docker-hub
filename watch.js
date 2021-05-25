@@ -6,6 +6,7 @@ const client = got.extend({
   hooks: {
     afterResponse: [(response, retryWithMergedOptions) => {
       if (response && response.statusCode === 409 && response.body) {
+        console.log('Retry');
         const updatedOptions = {
           headers: {
             'X-Transmission-Session-Id': response.headers['X-Transmission-Session-Id'.toLowerCase()]
