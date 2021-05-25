@@ -63,7 +63,7 @@ function formatTime(time) {
               'rateDownload',
               'sizeWhenDone'
             ],
-            ids: [id]
+            ids: [Number(id)]
           }
         }
       });
