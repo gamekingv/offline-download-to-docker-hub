@@ -99,7 +99,7 @@ function processOutput(output, lastIndex = 0) {
       }
     });
     if (!taskInfo) throw '获取种子信息失败';
-    const { torrentFiles } = taskInfo.arguments.torrents[0];
+    const { files: torrentFiles } = taskInfo.arguments.torrents[0];
     let paddingFiles;
     if (torrentFiles) {
       const list = processOutput(torrentFiles, lastIndex);
