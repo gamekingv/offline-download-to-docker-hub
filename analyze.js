@@ -1,7 +1,4 @@
 const fs = require('fs').promises;
-const child_process = require('child_process');
-const { promisify } = require('util');
-const exec = promisify(child_process.exec);
 const got = require('got');
 
 const {
@@ -27,46 +24,10 @@ const client = got.extend({
   }
 });
 
-function formatSize(size, unit) {
-  let byte = 0;
-  if (unit) formatUnit = unit.toUpperCase();
-  else byte = Number(size);
-  switch (formatUnit) {
-    case 'K': {
-      byte = Number(size) * 1000;
-      break;
-    }
-    case 'M': {
-      byte = Number(size) * Math.pow(1000, 2);
-      break;
-    }
-    case 'G': {
-      byte = Number(size) * Math.pow(1000, 3);
-      break;
-    }
-    case 'T': {
-      byte = Number(size) * Math.pow(1000, 4);
-      break;
-    }
-    case 'P': {
-      byte = Number(size) * Math.pow(1000, 5);
-      break;
-    }
-  }
-  return Math.ceil(byte);
-}
-
 function processOutput(output, lastIndex = 0) {
   const maxSize = 400 * 1024 * 1024;
   const singleFileMaxSize = 12 * 1024 * 1024 * 1024;
-  const [header, list] = output.split('\nFILES\n');
-  const hash = header.match(/  Hash: (.*)/)[1];
-  const filterResult = list.replace(/\n*$/, '').split('\n  ');
-  filterResult.shift();
-  const files = filterResult.map((item, index) => {
-    const [, name, size, unit] = item.match(/^(.*) \((.*?) (P|T|G|M|k)?B\)$/);
-    return { index: index + 1, name, size: formatSize(size, unit) };
-  }).filter(item => item.index > Number(lastIndex));
+  const files = output.map(({ name, length }, index) => ({ index, name, size: length })).filter(item => item.index > Number(lastIndex));
   const paddingFiles = files.filter(item => /_____padding_file_\d+_/.test(item.name)).map(item => item.index);
   const matchResult = files.filter(item => !/_____padding_file_\d+_/.test(item.name));
   const queue = [];
@@ -96,7 +57,6 @@ function processOutput(output, lastIndex = 0) {
   });
   if (bigFiles.length > 0) {
     console.log('以下文件因过大而忽略：');
-    console.log(`magnet:?xt=urn:btih:${hash}`);
   }
   bigFiles.forEach(file => console.log(file));
   queue.push(paddingFiles);
@@ -115,11 +75,35 @@ function processOutput(output, lastIndex = 0) {
     } = event.inputs || {};
     let downloadedFiles = [];
     if (lastIndex) downloadedFiles = [...Array(Number(lastIndex) + 1).keys()].slice(1);
-    const { stdout: output, stderr } = await exec(`transmission-show "${torrent}"`);
-    if (stderr) throw stderr;
+    const torrentBase64 = (await fs.readFile(torrent)).toString('base64');
+    const { body: addResponse } = await client.post('http://localhost:9091/transmission/rpc', {
+      json: {
+        method: 'torrent-add',
+        arguments: {
+          'files-unwanted': downloadedFiles.concat(tasks.flat(), paddingFiles),
+          paused: true,
+          metainfo: torrentBase64
+        }
+      }
+    });
+    const taskID = addResponse.arguments['torrent-added'].id;
+    if (!taskID) throw '添加种子失败';
+    const { body: taskInfo } = await client.post('http://localhost:9091/transmission/rpc', {
+      json: {
+        method: 'torrent-get',
+        arguments: {
+          fields: [
+            'files',
+          ],
+          ids: [taskID]
+        }
+      }
+    });
+    if (!taskInfo) throw '获取种子信息失败';
+    const { torrentFiles } = taskInfo.arguments.torrents[0];
     let paddingFiles;
-    if (output) {
-      const list = processOutput(output, lastIndex);
+    if (torrentFiles) {
+      const list = processOutput(torrentFiles, lastIndex);
       paddingFiles = list.pop();
       tasks.push(...list);
     }
@@ -131,18 +115,16 @@ function processOutput(output, lastIndex = 0) {
     if (tasks.length === 0) await fs.writeFile('last-file.txt', 'none');
     else {
       await fs.writeFile('last-file.txt', `${last}`);
-      const torrentBase64 = (await fs.readFile(torrent)).toString('base64');
-      await client.post('http://localhost:9091/transmission/rpc', {
-        json: {
-          method: 'torrent-add',
-          arguments: {
-            'files-unwanted': downloadedFiles.concat(tasks.flat(), paddingFiles),
-            paused: false,
-            metainfo: torrentBase64
-          }
-        }
-      });
     }
+    await client.post('http://localhost:9091/transmission/rpc', {
+      json: {
+        method: 'torrent-set',
+        arguments: {
+          'files-unwanted': downloadedFiles.concat(tasks.flat(), paddingFiles),
+          paused: false
+        }
+      }
+    });
   }
   catch (error) {
     console.log(error);
