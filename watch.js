@@ -49,7 +49,6 @@ function formatTime(time) {
     let timeout = false, finished = false;
     const timeoutFlag = setTimeout(() => timeout = true, 5.5 * 60 * 60 * 1000);
     while (!timeout && !finished) {
-      console.log(Date.now());
       const { body } = await client.post('http://172.22.142.63:9091/transmission/rpc', {
         json: {
           method: 'torrent-get',
