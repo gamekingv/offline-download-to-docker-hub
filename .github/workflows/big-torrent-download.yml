@@ -58,10 +58,11 @@ jobs:
 
       # 解析种子
       - name: Analyze
+        id: analyze
         run: |
           mkdir Offline
           cp *.torrent Offline
-          node analyze.js
+          echo "::set-output name=taskid::$(node analyze.js)"
           cat list.txt
 
       # 下载
@@ -73,22 +74,22 @@ jobs:
       # 监视下载
       - name: Watch Download
         run: |
-          node watch.js
+          node watch.js ${{ steps.analyze.outputs.taskid }}
 
       # 监视下载
       - name: Watch Download
         run: |
-          node watch.js
+          node watch.js ${{ steps.analyze.outputs.taskid }}
 
       # 监视下载
       - name: Watch Download
         run: |
-          node watch.js
+          node watch.js ${{ steps.analyze.outputs.taskid }}
 
       # 监视下载
       - name: Watch Download
         run: |
-          node watch.js
+          node watch.js ${{ steps.analyze.outputs.taskid }}
 
       # 清理多余文件
       - name: Remove

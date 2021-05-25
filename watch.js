@@ -1,5 +1,7 @@
 const got = require('got');
 
+const [, , id] = process.argv;
+
 let client = got.extend({
   timeout: 5000,
   responseType: 'json',
@@ -61,7 +63,7 @@ function formatTime(time) {
               'rateDownload',
               'sizeWhenDone'
             ],
-            ids: 'recently-active'
+            ids: [id]
           }
         }
       });

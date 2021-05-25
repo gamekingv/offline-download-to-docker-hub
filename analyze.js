@@ -132,6 +132,7 @@ function processOutput(output, lastIndex = 0) {
         },
       }
     });
+    console.log(taskID);
   }
   catch (error) {
     console.log(error);
