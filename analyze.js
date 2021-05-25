@@ -25,7 +25,7 @@ const client = got.extend({
 });
 
 function processOutput(output, lastIndex = 0) {
-  const maxSize = 400 * 1024 * 1024;
+  const maxSize = 1024 * 1024 * 1024;
   const singleFileMaxSize = 12 * 1024 * 1024 * 1024;
   const files = output.map(({ name, length }, index) => ({ index, name, size: length })).filter(item => item.index > Number(lastIndex));
   const paddingFiles = files.filter(item => /_____padding_file_\d+_/.test(item.name)).map(item => item.index);
