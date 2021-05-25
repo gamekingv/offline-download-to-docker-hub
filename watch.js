@@ -45,11 +45,11 @@ function formatTime(time) {
 }
 
 (async () => {
+  let timeout = false, finished = false;
+  const timeoutFlag = setTimeout(() => timeout = true, 5.5 * 60 * 60 * 1000);
   try {
-    let timeout = false, finished = false;
-    const timeoutFlag = setTimeout(() => timeout = true, 5.5 * 60 * 60 * 1000);
     while (!timeout && !finished) {
-      const { body } = await client.post('http://172.22.142.63:9091/transmission/rpc', {
+      const { body } = await client.post('http://localhost:9091/transmission/rpc', {
         json: {
           method: 'torrent-get',
           arguments: {
@@ -80,6 +80,7 @@ function formatTime(time) {
   catch (error) {
     console.log(error);
     if (error.response && error.response.body) console.log(error.response.body);
+    clearTimeout(timeoutFlag);
     process.exit(1);
   }
 })();
