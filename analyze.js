@@ -66,7 +66,7 @@ function processOutput(output, lastIndex = 0) {
   const matchResult = filterResult.map((item, index) => {
     const [, name, size, unit] = item.match(/^(.*) \((.*?) (P|T|G|M|k)?B\)$/);
     return { index: index + 1, name, size: formatSize(size, unit) };
-  }).filter(item => !/_____padding_file_\d+_/.test(item.name)).filter(item => item.index > Number(lastIndex));
+  }).filter(item => item.index > Number(lastIndex)).filter(item => !/_____padding_file_\d+_/.test(item.name));
   const queue = [];
   let totalSizeTemp = 0;
   let taskTemp = [];

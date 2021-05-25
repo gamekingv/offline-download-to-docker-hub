@@ -49,6 +49,7 @@ function formatTime(time) {
     let timeout = false, finished = false;
     setTimeout(() => timeout = true, 5.5 * 60 * 60 * 1000);
     while (timeout || finished) {
+      console.log(Date.now());
       const { body } = await client.post('http://localhost:9091/transmission/rpc', {
         json: {
           method: 'torrent-get',
@@ -65,8 +66,8 @@ function formatTime(time) {
           }
         }
       });
-      const torrent = body.arguments.torrents[0];
       console.log(body);
+      const torrent = body.arguments.torrents[0];
       if (!torrent) {
         finished = true;
         continue;
