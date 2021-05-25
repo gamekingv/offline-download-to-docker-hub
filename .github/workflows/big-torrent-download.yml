@@ -62,6 +62,7 @@ jobs:
           mkdir Offline
           cp *.torrent Offline
           node analyze.js
+          cat list.txt
 
       # 下载
       # - name: Download
