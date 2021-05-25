@@ -33,6 +33,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install aria2
+          sudo apt-get install transmission
+          sudo apt-get install transmission-daemon
           npm install
           node fetchtracker.js
 
