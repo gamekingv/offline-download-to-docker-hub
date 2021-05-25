@@ -121,8 +121,16 @@ function processOutput(output, lastIndex = 0) {
         method: 'torrent-set',
         arguments: {
           'files-unwanted': downloadedFiles.concat(tasks.flat(), paddingFiles),
-          paused: false
-        }
+          ids: [taskID]
+        },
+      }
+    });
+    await client.post('http://localhost:9091/transmission/rpc', {
+      json: {
+        method: 'torrent-start',
+        arguments: {
+          ids: [taskID]
+        },
       }
     });
   }
