@@ -80,7 +80,6 @@ function processOutput(output, lastIndex = 0) {
       json: {
         method: 'torrent-add',
         arguments: {
-          'files-unwanted': downloadedFiles.concat(tasks.flat(), paddingFiles),
           paused: true,
           metainfo: torrentBase64
         }
