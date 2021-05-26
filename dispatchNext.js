@@ -39,7 +39,7 @@ async function executeTask({ torrent, file }) {
     const lastIndex = `${await fs.readFile('last-file.txt')}`;
     if (lastIndex === 'none') return console.log('无后续任务');
     const base64 = Buffer.from(await fs.readFile(torrent)).toString('base64');
-    executeTask({ torrent: base64, file: lastIndex });
+    await executeTask({ torrent: base64, file: lastIndex });
   }
   catch (error) {
     console.log(error);
