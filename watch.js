@@ -47,10 +47,10 @@ function formatTime(time) {
 }
 
 (async () => {
-  let timeout = false, finished = false;
+  let timeout = false;
   const timeoutFlag = setTimeout(() => timeout = true, 5.5 * 60 * 60 * 1000);
   try {
-    while (!timeout && !finished) {
+    while (!timeout) {
       const { body } = await client.post('http://localhost:9091/transmission/rpc', {
         json: {
           method: 'torrent-get',
@@ -70,14 +70,11 @@ function formatTime(time) {
         }
       });
       const torrent = body.arguments.torrents[0];
-      if (!torrent) {
-        finished = true;
-        break;
-      }
+      if (!torrent) break;
       const { eta, rateDownload, percentDone, leftUntilDone, sizeWhenDone, error, errorString } = torrent;
       console.log(`${formatSize(sizeWhenDone - leftUntilDone)} / ${formatSize(sizeWhenDone)} (${(percentDone * 100).toFixed(2)}%)  Speed: ${formatSize(rateDownload, 1000)}/s  Remaining: ${formatTime(eta)}`);
       if (error > 0) throw errorString;
-      if (percentDone === 1) finished = true;
+      if (percentDone === 1) break;
       await new Promise(res => setTimeout(() => res(), 30 * 1000));
     }
     clearTimeout(timeoutFlag);
