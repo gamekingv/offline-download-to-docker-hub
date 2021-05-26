@@ -120,6 +120,7 @@ function processOutput(output, lastIndex = -1) {
     console.log('tasks.flat():' + JSON.stringify(tasks.flat()));
     console.log('paddingFiles:' + JSON.stringify(paddingFiles));
     console.log('files-unwanted:' + JSON.stringify(downloadedFiles.concat(tasks.flat(), paddingFiles)));
+    console.log('task:' + JSON.stringify(task));
     await client.post('http://localhost:9091/transmission/rpc', {
       json: {
         method: 'torrent-set',
