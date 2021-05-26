@@ -73,8 +73,8 @@ function processOutput(output, lastIndex = -1) {
     const {
       file: lastIndex
     } = event.inputs || {};
-    let downloadedFiles = [];
-    if (lastIndex) downloadedFiles = [...Array(Number(lastIndex) + 1).keys()].slice(1);
+    const downloadedFiles = [];
+    if (lastIndex) downloadedFiles.push(...Array(Number(lastIndex)).keys());
     const torrentBase64 = (await fs.readFile(torrent)).toString('base64');
     const { body: addResponse } = await client.post('http://localhost:9091/transmission/rpc', {
       json: {
