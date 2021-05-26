@@ -36,7 +36,7 @@ jobs:
           sudo apt-get install transmission-daemon
           npm install
           node fetchtracker.js
-          service transmission-daemon stop
+          sudo service transmission-daemon stop
           sudo node Initialize-transmission.js
           service transmission-daemon start
 
