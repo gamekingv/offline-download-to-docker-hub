@@ -76,6 +76,14 @@ function mapDirectory(root) {
         await fsp.unlink(file);
       }
     }
+    await client.post('http://localhost:9091/transmission/rpc', {
+      json: {
+        method: 'torrent-stop',
+        arguments: {
+          ids: [Number(id)]
+        },
+      }
+    });
   }
   catch (error) {
     console.log(error);
