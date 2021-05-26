@@ -55,7 +55,7 @@ function mapDirectory(root) {
           fields: [
             'files',
           ],
-          ids: [id]
+          ids: [Number(id)]
         }
       }
     });
