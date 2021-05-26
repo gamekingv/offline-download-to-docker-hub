@@ -1,2 +1,1 @@
-http://ccr-1253687700.cn-south.myqcloud.com/docker%2Fregistry%2Fv2%2Fblobs%2Fsha256%2F19%2F194782208d7e6f86f3c1b31711c6833982bdd3eae15082c362afa7af10ce6877%2Fdata?q-sign-algorithm=sha1&q-ak=AKIDQRmsg7xgYDfqkOJGXWG7vqXy8H9VKR0H&q-sign-time=1621868491%3B1621869691&q-key-time=1621868491%3B1621869691&q-header-list=host&q-url-param-list=&q-signature=9202859eb9c9409910591217d8c6fa5e52ba61fa
-  out=116.zip
+https://exhentai.org/torrent/1918509/00bc0db5a9116837f49f82295de546b2a060bea5.torrent
