@@ -5,7 +5,7 @@ const {
   GITHUB_EVENT_PATH
 } = process.env;
 
-const client = got.extend({
+let client = got.extend({
   timeout: 5000,
   responseType: 'json',
   hooks: {
@@ -16,7 +16,7 @@ const client = got.extend({
             'X-Transmission-Session-Id': response.headers['X-Transmission-Session-Id'.toLowerCase()]
           }
         };
-        client.defaults.options = got.mergeOptions(client.defaults.options, updatedOptions);
+        client = client.extend(updatedOptions);
         return retryWithMergedOptions(updatedOptions);
       }
       return response;
