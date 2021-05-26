@@ -24,7 +24,7 @@ const client = got.extend({
   }
 });
 
-function processOutput(output, lastIndex = 0) {
+function processOutput(output, lastIndex = -1) {
   const maxSize = 1024 * 1024 * 1024;
   const singleFileMaxSize = 12 * 1024 * 1024 * 1024;
   const files = output.map(({ name, length }, index) => ({ index, name, size: length })).filter(item => item.index > Number(lastIndex));
