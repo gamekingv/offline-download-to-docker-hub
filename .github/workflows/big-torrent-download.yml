@@ -39,7 +39,6 @@ jobs:
           sudo service transmission-daemon stop
           sudo node Initialize-transmission.js
           sudo service transmission-daemon start
-          chmod 777 -R ./Offline
 
       # 下载种子
       - name: Save Torrent
@@ -63,6 +62,7 @@ jobs:
         run: |
           mkdir Offline
           cp *.torrent Offline
+          chmod 777 -R ./Offline
           echo "::set-output name=taskid::$(node analyze.js)"
           cat list.txt
 
