@@ -61,7 +61,8 @@ function formatTime(time) {
               'leftUntilDone',
               'percentDone',
               'rateDownload',
-              'sizeWhenDone'
+              'sizeWhenDone',
+              'status'
             ],
             ids: [Number(id)]
           }
@@ -72,8 +73,8 @@ function formatTime(time) {
         finished = true;
         break;
       }
-      const { eta, rateDownload, percentDone, leftUntilDone, sizeWhenDone } = torrent;
-      console.log(`${formatSize(sizeWhenDone - leftUntilDone)} / ${formatSize(sizeWhenDone)} (${(percentDone * 100).toFixed(2)}%)  Speed: ${formatSize(rateDownload, 1000)}/s  Remaining: ${formatTime(eta)}`);
+      const { eta, rateDownload, percentDone, leftUntilDone, sizeWhenDone, status } = torrent;
+      console.log(`${formatSize(sizeWhenDone - leftUntilDone)} / ${formatSize(sizeWhenDone)} (${(percentDone * 100).toFixed(2)}%)  Speed: ${formatSize(rateDownload, 1000)}/s  Remaining: ${formatTime(eta)}  Status: ${status}`);
       if (percentDone === 1) finished = true;
       await new Promise(res => setTimeout(() => res(), 30 * 1000));
     }
