@@ -70,7 +70,7 @@ function formatTime(time) {
         }
       });
       const torrent = body.arguments.torrents[0];
-      if (!torrent) break;
+      if (!torrent) throw '监视种子失败';
       const { eta, rateDownload, percentDone, leftUntilDone, sizeWhenDone, error, errorString } = torrent;
       console.log(`${formatSize(sizeWhenDone - leftUntilDone)} / ${formatSize(sizeWhenDone)} (${(percentDone * 100).toFixed(2)}%)  Speed: ${formatSize(rateDownload, 1000)}/s  Remaining: ${formatTime(eta)}`);
       if (error > 0) throw errorString;
