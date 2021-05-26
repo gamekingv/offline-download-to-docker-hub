@@ -62,7 +62,6 @@ jobs:
         id: analyze
         run: |
           mkdir Offline
-          cp *.torrent Offline
           chmod 777 -R ./Offline
           echo "::set-output name=taskid::$(node analyze.js)"
           cat list.txt
