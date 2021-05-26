@@ -39,7 +39,7 @@ function mapDirectory(root) {
     if (!list.includes('  select-file=')) return;
     const selected = list.match(/  select-file=(.*)/)[1].split(',').map(index => Number(index));
     if (!selected) throw '读取选中文件失败';
-    const torrent = (await fsp.readdir('./')).find((item) => /\.torrent$/.test(item));
+    const torrent = (await fsp.readdir('./Offline')).find((item) => /\.torrent$/.test(item));
     if (!torrent) throw '读取种子文件失败';
     const files = [];
     const { stdout: output, stderr } = await exec(`aria2c -S "Offline/${torrent}"`);
