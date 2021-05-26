@@ -66,12 +66,6 @@ jobs:
           echo "::set-output name=taskid::$(node analyze.js)"
           cat list.txt
 
-      # 下载
-      # - name: Download
-      #   run: |
-      #     cat list.txt
-      #     aria2c --conf-path=aria2.conf --bt-save-metadata=true -i list.txt
-
       # 监视下载
       - name: Watch Download
         run: |
