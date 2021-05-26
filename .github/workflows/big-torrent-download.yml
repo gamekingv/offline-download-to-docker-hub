@@ -95,7 +95,7 @@ jobs:
       # 清理多余文件
       - name: Remove
         run: |
-          node remove.transmission.js ${{ steps.analyze.outputs.taskid }}
+          sudo node remove.transmission.js ${{ steps.analyze.outputs.taskid }}
 
       # 上传
       - name: Upload
