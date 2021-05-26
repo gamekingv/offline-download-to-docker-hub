@@ -93,13 +93,14 @@ function processOutput(output, lastIndex = -1) {
         arguments: {
           fields: [
             'files',
+            'hashString'
           ],
           ids: [taskID]
         }
       }
     });
     if (!taskInfo) throw '获取种子信息失败';
-    const { files: torrentFiles } = taskInfo.arguments.torrents[0];
+    const { files: torrentFiles, hashString } = taskInfo.arguments.torrents[0];
     let paddingFiles;
     if (torrentFiles) {
       const list = processOutput(torrentFiles, lastIndex);
@@ -109,7 +110,7 @@ function processOutput(output, lastIndex = -1) {
     else throw '无法解析种子';
     const task = tasks.shift();
     if (!task) throw '分解种子任务失败';
-    await fs.writeFile('list.txt', `${torrent}\r\n  select-file=${task.join(',')}`);
+    await fs.writeFile('list.txt', `magnet:?xt=urn:btih:${hashString}\r\n  select-file=${task.join(',')}`);
     const last = task[task.length - 1];
     if (tasks.length === 0) await fs.writeFile('last-file.txt', 'none');
     else {

@@ -23,7 +23,7 @@ async function executeTask({ torrent, file }) {
     json: {
       ref: 'main',
       inputs: {
-        type: 'torrent',
+        type: 'magnet',
         torrent,
         file
       }
@@ -33,12 +33,14 @@ async function executeTask({ torrent, file }) {
 
 (async () => {
   try {
-    const files = await fs.readdir('./');
-    const torrent = files.find((item) => /\.torrent$/.test(item));
+    // const files = await fs.readdir('./');
+    // const torrent = files.find((item) => /\.torrent$/.test(item));
+    const list = (await fs.readFile('list.txt')).toString();
+    const magnet = list.match(/(.*)/)[1];
     const lastIndex = `${await fs.readFile('last-file.txt')}`;
     if (lastIndex === 'none') return console.log('无后续任务');
-    const base64 = Buffer.from(await fs.readFile(torrent)).toString('base64');
-    await executeTask({ torrent: base64, file: lastIndex });
+    // const base64 = Buffer.from(await fs.readFile(torrent)).toString('base64');
+    await executeTask({ torrent: magnet, file: lastIndex });
   }
   catch (error) {
     console.log(error);
