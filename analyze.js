@@ -115,10 +115,11 @@ function processOutput(output, lastIndex = -1) {
     else {
       await fs.writeFile('last-file.txt', `${last}`);
     }
-    console.log(task);
-    console.log(downloadedFiles);
-    console.log(tasks.flat());
-    console.log(paddingFiles);
+    console.log('task:' + JSON.stringify(task));
+    console.log('downloadedFiles:' + JSON.stringify(downloadedFiles));
+    console.log('tasks.flat():' + JSON.stringify(tasks.flat()));
+    console.log('paddingFiles:' + JSON.stringify(paddingFiles));
+    console.log('files-unwanted:' + JSON.stringify(downloadedFiles.concat(tasks.flat(), paddingFiles)));
     await client.post('http://localhost:9091/transmission/rpc', {
       json: {
         method: 'torrent-set',
