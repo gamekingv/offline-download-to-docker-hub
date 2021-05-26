@@ -115,21 +115,18 @@ function processOutput(output, lastIndex = -1) {
     else {
       await fs.writeFile('last-file.txt', `${last}`);
     }
-    console.log('task:' + JSON.stringify(task));
-    console.log('downloadedFiles:' + JSON.stringify(downloadedFiles));
-    console.log('tasks.flat():' + JSON.stringify(tasks.flat()));
-    console.log('paddingFiles:' + JSON.stringify(paddingFiles));
-    console.log('files-unwanted:' + JSON.stringify(downloadedFiles.concat(tasks.flat(), paddingFiles)));
-    console.log('task:' + JSON.stringify(task));
-    await client.post('http://localhost:9091/transmission/rpc', {
-      json: {
-        method: 'torrent-set',
-        arguments: {
-          'files-unwanted': downloadedFiles.concat(tasks.flat(), paddingFiles),
-          ids: [taskID]
-        },
-      }
-    });
+    const filesUnwanted = downloadedFiles.concat(tasks.flat(), paddingFiles);
+    if (filesUnwanted.length > 0) {
+      await client.post('http://localhost:9091/transmission/rpc', {
+        json: {
+          method: 'torrent-set',
+          arguments: {
+            'files-unwanted': downloadedFiles.concat(tasks.flat(), paddingFiles),
+            ids: [taskID]
+          },
+        }
+      });
+    }
     await client.post('http://localhost:9091/transmission/rpc', {
       json: {
         method: 'torrent-start',
