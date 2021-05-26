@@ -106,7 +106,7 @@ function processOutput(output, lastIndex = -1) {
       paddingFiles = list.pop();
       tasks.push(...list);
     }
-    else throw 'Aria2解析种子命令无输出';
+    else throw '无法解析种子';
     const task = tasks.shift();
     if (!task) throw '分解种子任务失败';
     await fs.writeFile('list.txt', `${torrent}\r\n  select-file=${task.join(',')}`);

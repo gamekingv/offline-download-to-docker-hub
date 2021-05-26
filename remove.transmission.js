@@ -1,20 +1,26 @@
 const fs = require('fs');
 const fsp = fs.promises;
-const child_process = require('child_process');
-const { promisify } = require('util');
-const exec = promisify(child_process.exec);
 
-function processOutput(output) {
-  const [, result] = output.split('\n===+===========================================================================\n');
-  const list = result.split('\n---+---------------------------------------------------------------------------\n');
-  const filterResult = list.filter(item => !/_____padding_file_\d+_/.test(item));
-  filterResult.pop();
-  const matchResult = filterResult.map(item => {
-    const [, index, name, size] = item.match(/^\s*(\d+)\|\s*\.\/(.*)\n\s*\|[^(]+ \(([^)]+)\)$/);
-    return { index: Number(index), name, size: Number(size.replace(/,/g, '')) };
-  });
-  return matchResult;
-}
+const [, , id] = process.argv;
+
+let client = got.extend({
+  timeout: 5000,
+  responseType: 'json',
+  hooks: {
+    afterResponse: [(response, retryWithMergedOptions) => {
+      if (response && response.statusCode === 409 && response.body) {
+        const updatedOptions = {
+          headers: {
+            'X-Transmission-Session-Id': response.headers['X-Transmission-Session-Id'.toLowerCase()]
+          }
+        };
+        client = client.extend(updatedOptions);
+        return retryWithMergedOptions(updatedOptions);
+      }
+      return response;
+    }]
+  }
+});
 
 function mapDirectory(root) {
   const filesArr = [];
@@ -41,14 +47,24 @@ function mapDirectory(root) {
     if (!selected) throw '读取选中文件失败';
     const torrent = (await fsp.readdir('./Offline')).find((item) => /\.torrent$/.test(item));
     if (!torrent) throw '读取种子文件失败';
+    const { body: taskInfo } = await client.post('http://localhost:9091/transmission/rpc', {
+      json: {
+        method: 'torrent-get',
+        arguments: {
+          fields: [
+            'files',
+          ],
+          ids: [id]
+        }
+      }
+    });
+    if (!taskInfo) throw '获取种子信息失败';
     const files = [];
-    const { stdout: output, stderr } = await exec(`aria2c -S "Offline/${torrent}"`);
-    if (stderr) throw stderr;
-    if (output) {
-      const list = processOutput(output);
-      files.push(...list);
+    const { files: torrentFiles } = taskInfo.arguments.torrents[0];
+    if (torrentFiles) {
+      files.push(...torrentFiles.map(({ name, length }, index) => ({ index, name, size: length })).filter(item => !/_____padding_file_\d+_/.test(item.name)));
     }
-    else throw 'Aria2命令无输出';
+    else throw '无法解析种子';
     const selectedFiles = files.filter(file => selected.some(index => index === file.index));
     const downloadedFiles = mapDirectory('Offline');
     const removeFiles = downloadedFiles.filter(file => !selectedFiles.some(selectedFile => `Offline/${selectedFile.name}` === file));

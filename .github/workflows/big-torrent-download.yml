@@ -90,12 +90,12 @@ jobs:
       # 监视下载
       - name: Watch Download
         run: |
-          node watch.js ${{ steps.analyze.outputs.taskid }}
+          node watch.js ${{ steps.analyze.outputs.taskid }} 1
 
       # 清理多余文件
       - name: Remove
         run: |
-          node remove.js
+          node remove.transmission.js ${{ steps.analyze.outputs.taskid }}
 
       # 上传
       - name: Upload

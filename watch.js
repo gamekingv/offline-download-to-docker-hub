@@ -1,6 +1,6 @@
 const got = require('got');
 
-const [, , id] = process.argv;
+const [, , id, infinity] = process.argv;
 
 let client = got.extend({
   timeout: 5000,
@@ -49,6 +49,7 @@ function formatTime(time) {
 (async () => {
   let timeout = false;
   const timeoutFlag = setTimeout(() => timeout = true, 5.5 * 60 * 60 * 1000);
+  if (infinity) clearTimeout(timeoutFlag);
   try {
     while (!timeout) {
       const { body } = await client.post('http://localhost:9091/transmission/rpc', {
