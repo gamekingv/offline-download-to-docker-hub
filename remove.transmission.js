@@ -1,5 +1,6 @@
 const fs = require('fs');
 const fsp = fs.promises;
+const got = require('got');
 
 const [, , id] = process.argv;
 
