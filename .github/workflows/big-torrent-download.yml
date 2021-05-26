@@ -38,7 +38,7 @@ jobs:
           node fetchtracker.js
           sudo service transmission-daemon stop
           sudo node Initialize-transmission.js
-          service transmission-daemon start
+          sudo service transmission-daemon start
 
       # 下载种子
       - name: Save Torrent

@@ -8,6 +8,8 @@ const fs = require('fs').promises;
       'rpc-authentication-required': 0
     });
     await fs.writeFile('/etc/transmission-daemon/settings.json', JSON.stringify(settings, null, 2));
+    const initial = (await fs.readFile('/etc/init.d/transmission-daemon')).toString();
+    await fs.writeFile('/etc/init.d/transmission-daemon', initial.replace('debian-transmission', 'root'));
   }
   catch (error) {
     console.log(error);
