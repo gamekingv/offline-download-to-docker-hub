@@ -15,20 +15,19 @@ const client = got.extend({
 });
 
 async function executeTask({ torrent, file }) {
-  const body = JSON.stringify({
-    ref: 'main',
-    inputs: {
-      type: 'torrent',
-      torrent,
-      file
-    }
-  });
   await client.post(`https://api.github.com/repos/${repository}/actions/workflows/big-torrent-download.yml/dispatches`, {
     headers: {
       'Accept': 'application/vnd.github.v3+json',
       'Authorization': `token ${dispatchToken}`
     },
-    body,
+    json: {
+      ref: 'main',
+      inputs: {
+        type: 'torrent',
+        torrent,
+        file
+      }
+    },
   });
 }
 
