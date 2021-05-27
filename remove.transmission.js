@@ -1,5 +1,5 @@
-const fs = require('fs').promises;
-// const fsp = fs.promises;
+const fs = require('fs');
+const fsp = fs.promises;
 const got = require('got');
 
 // const [, , id] = process.argv;
@@ -82,14 +82,14 @@ function mapDirectory(root) {
     //     },
     //   }
     // });
-    const selectedFiles = JSON.parse(await fs.readFile('download-files.json'));
+    const selectedFiles = JSON.parse(await fsp.readFile('download-files.json'));
     const downloadedFiles = mapDirectory('Offline');
     const removeFiles = downloadedFiles.filter(file => !selectedFiles.some(selectedFile => `Offline/${selectedFile.name}` === file));
     if (removeFiles.length > 0) {
       console.log('清理多余文件：');
       for (const file of removeFiles) {
         console.log(file);
-        await fs.unlink(file);
+        await fsp.unlink(file);
       }
     }
 
