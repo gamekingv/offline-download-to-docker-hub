@@ -77,7 +77,7 @@ jobs:
       # 保存未完成下载
       - name: 'Compress'
         run: |
-          tar -czvf uncomplete.tar.gz *.torrent Offline
+          tar -czvf uncomplete.tar.gz *.torrent download-files.json list.txt last-file.txt Offline
       - name: 'Upload Artifact'
         uses: actions/upload-artifact@v2
         with:
@@ -713,7 +713,7 @@ jobs:
           retention-days: 1
 
   upload:
-    if: ${{ always() }}
+    if: ${{ !failure() }}
     needs: extend_last
     runs-on: ubuntu-latest
     steps:
