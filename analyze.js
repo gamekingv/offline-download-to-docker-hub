@@ -69,7 +69,6 @@ async function processOutput(output, lastIndex = -1) {
   }
   bigFiles.forEach(file => console.log(file));
   if (queue.length > 0) {
-    console.log('');
     console.log('即将下载以下文件：');
     const taskList = matchResult.filter(item => queue[0].some(task => task === item.index));
     await fs.writeFile('download-files.json', JSON.stringify(taskList));

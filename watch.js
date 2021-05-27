@@ -81,8 +81,6 @@ function formatTime(time) {
       await new Promise(res => setTimeout(() => res(), 30 * 1000));
     }
     clearTimeout(timeoutFlag);
-    if (timeout) await fs.writeFile('download-result.txt', 'timeout');
-    else await fs.writeFile('download-result.txt', 'complete');
     await client.post('http://localhost:9091/transmission/rpc', {
       json: {
         method: 'torrent-stop',
@@ -91,6 +89,8 @@ function formatTime(time) {
         },
       }
     });
+    if (timeout) await fs.writeFile('download-result.txt', 'timeout');
+    else await fs.writeFile('download-result.txt', 'complete');
   }
   catch (error) {
     console.log(error);
