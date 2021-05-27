@@ -50,7 +50,7 @@ function formatTime(time) {
 (async () => {
   let timeout = false;
   // const timeoutFlag = setTimeout(() => timeout = true, 5.5 * 60 * 60 * 1000);
-  const timeoutFlag = setTimeout(() => timeout = true, 30 * 1000);
+  const timeoutFlag = setTimeout(() => timeout = true, 50 * 1000);
   if (infinity) clearTimeout(timeoutFlag);
   try {
     while (!timeout) {
