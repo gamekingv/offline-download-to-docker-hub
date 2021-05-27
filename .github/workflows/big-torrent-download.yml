@@ -77,7 +77,7 @@ jobs:
       # 保存未完成下载
       - name: 'Compress'
         run: |
-          tar -czvf uncomplete.tar.gz *.torrent download-files.json list.txt last-file.txt Offline
+          tar -czvf uncomplete.tar.gz *.torrent Offline
       - name: 'Upload Artifact'
         uses: actions/upload-artifact@v2
         with:
