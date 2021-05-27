@@ -89,6 +89,24 @@ function formatTime(time) {
         },
       }
     });
+    let status = 4;
+    while (status === 4) {
+      const { body } = await client.post('http://localhost:9091/transmission/rpc', {
+        json: {
+          method: 'torrent-get',
+          arguments: {
+            fields: [
+              'status'
+            ],
+            ids: [Number(id)]
+          }
+        }
+      });
+      const torrent = body.arguments.torrents[0];
+      const { status: newStatus } = torrent;
+      status = newStatus;
+      await new Promise(res => setTimeout(() => res(), 1000));
+    }
     if (timeout) await fs.writeFile('download-result.txt', 'timeout');
     else await fs.writeFile('download-result.txt', 'complete');
   }
