@@ -33,7 +33,7 @@ function formatSize(size, denominator = 1024) {
   else if (size < Math.pow(denominator, 6)) return `${(size / Math.pow(denominator, 5)).toFixed(2)} PB`;
 }
 
-function processOutput(output, lastIndex = -1) {
+async function processOutput(output, lastIndex = -1) {
   const maxSize = 500 * 1024 * 1024;
   const singleFileMaxSize = 13 * 1024 * 1024 * 1024;
   const files = output.map(({ name, length }, index) => ({ index, name, size: length })).filter(item => item.index > Number(lastIndex));
@@ -72,6 +72,7 @@ function processOutput(output, lastIndex = -1) {
     console.log('');
     console.log('即将下载以下文件：');
     const taskList = matchResult.filter(item => queue[0].some(task => task === item.index));
+    await fs.writeFile('download-files.json', JSON.stringify(taskList));
     taskList.forEach(info => console.log(`${info.index}: ${info.name} (${formatSize(info.size)})`));
   }
   queue.push(paddingFiles);
@@ -101,6 +102,7 @@ function processOutput(output, lastIndex = -1) {
       }
     });
     const taskID = addResponse.arguments['torrent-added'].id;
+    console.log(taskID);
     if (!taskID) throw '添加种子失败';
     const { body: taskInfo } = await client.post('http://localhost:9091/transmission/rpc', {
       json: {
@@ -119,7 +121,7 @@ function processOutput(output, lastIndex = -1) {
     let paddingFiles;
     if (torrentFiles) {
       console.log(`magnet:?xt=urn:btih:${hashString}`);
-      const list = processOutput(torrentFiles, lastIndex);
+      const list = await processOutput(torrentFiles, lastIndex);
       paddingFiles = list.pop();
       tasks.push(...list);
     }
@@ -152,7 +154,6 @@ function processOutput(output, lastIndex = -1) {
         },
       }
     });
-    console.log(taskID);
   }
   catch (error) {
     console.log(error);

@@ -1,4 +1,5 @@
 const got = require('got');
+const fs = require('fs').promises;
 
 const [, , id, infinity] = process.argv;
 
@@ -48,7 +49,8 @@ function formatTime(time) {
 
 (async () => {
   let timeout = false;
-  const timeoutFlag = setTimeout(() => timeout = true, 5.5 * 60 * 60 * 1000);
+  // const timeoutFlag = setTimeout(() => timeout = true, 5.5 * 60 * 60 * 1000);
+  const timeoutFlag = setTimeout(() => timeout = true, 30 * 1000);
   if (infinity) clearTimeout(timeoutFlag);
   try {
     while (!timeout) {
@@ -79,6 +81,16 @@ function formatTime(time) {
       await new Promise(res => setTimeout(() => res(), 30 * 1000));
     }
     clearTimeout(timeoutFlag);
+    if (timeout) await fs.writeFile('download-result.txt', 'timeout');
+    else await fs.writeFile('download-result.txt', 'complete');
+    await client.post('http://localhost:9091/transmission/rpc', {
+      json: {
+        method: 'torrent-stop',
+        arguments: {
+          ids: [Number(id)]
+        },
+      }
+    });
   }
   catch (error) {
     console.log(error);
