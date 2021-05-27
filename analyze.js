@@ -24,6 +24,15 @@ let client = got.extend({
   }
 });
 
+function formatSize(size, denominator = 1024) {
+  if (size < denominator) return `${size} B`;
+  else if (size < Math.pow(denominator, 2)) return `${(size / denominator).toFixed(0)} KB`;
+  else if (size < Math.pow(denominator, 3)) return `${(size / Math.pow(denominator, 2)).toFixed(2)} MB`;
+  else if (size < Math.pow(denominator, 4)) return `${(size / Math.pow(denominator, 3)).toFixed(2)} GB`;
+  else if (size < Math.pow(denominator, 5)) return `${(size / Math.pow(denominator, 4)).toFixed(2)} TB`;
+  else if (size < Math.pow(denominator, 6)) return `${(size / Math.pow(denominator, 5)).toFixed(2)} PB`;
+}
+
 function processOutput(output, lastIndex = -1) {
   const maxSize = 500 * 1024 * 1024;
   const singleFileMaxSize = 13 * 1024 * 1024 * 1024;
@@ -59,6 +68,12 @@ function processOutput(output, lastIndex = -1) {
     console.log('以下文件因过大而忽略：');
   }
   bigFiles.forEach(file => console.log(file));
+  if (queue.length > 0) {
+    console.log('');
+    console.log('即将下载以下文件：');
+    const taskList = matchResult.filter(item => queue[0].some(task => task === item.index));
+    taskList.forEach(info => console.log(`${info.index}: ${info.name} (${formatSize(info.size)})`));
+  }
   queue.push(paddingFiles);
   return queue;
 }
@@ -103,6 +118,7 @@ function processOutput(output, lastIndex = -1) {
     const { files: torrentFiles, hashString } = taskInfo.arguments.torrents[0];
     let paddingFiles;
     if (torrentFiles) {
+      console.log(`magnet:?xt=urn:btih:${hashString}`);
       const list = processOutput(torrentFiles, lastIndex);
       paddingFiles = list.pop();
       tasks.push(...list);
@@ -122,7 +138,7 @@ function processOutput(output, lastIndex = -1) {
         json: {
           method: 'torrent-set',
           arguments: {
-            'files-unwanted': downloadedFiles.concat(tasks.flat(), paddingFiles),
+            'files-unwanted': filesUnwanted,
             ids: [taskID]
           },
         }
