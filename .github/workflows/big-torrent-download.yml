@@ -770,7 +770,7 @@ jobs:
           retention-days: 1
 
   upload:
-    if: ${{ success() }}
+    if: ${{ !failure() || !cancelled() }}
     needs: extend_last
     runs-on: ubuntu-latest
     steps:
