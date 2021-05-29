@@ -583,7 +583,7 @@ function mapDirectory(root) {
   }
   catch (error) {
     console.log(error);
-    if (error.response && error.response.body) console.log(error.response.body);
+    if (error.response && error.response.body) console.log(JSON.stringify(error.response.body, null, 2));
     process.exit(1);
   }
 })();
