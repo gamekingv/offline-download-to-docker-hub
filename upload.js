@@ -51,7 +51,7 @@ async function errorHandler(error) {
       return await Promise.reject(error);
     }
     console.log('请求出错，HTTP状态码：' + error.response.status);
-    console.log(error.response.data);
+    console.log(JSON.stringify(error.response.data, null, 2));
   }
   else console.log(`请求出错：${error.toString()}`);
   config.__retryCount = config.__retryCount || 0;
@@ -583,7 +583,7 @@ function mapDirectory(root) {
   }
   catch (error) {
     console.log(error);
-    if (error.response && error.response.body) console.log(JSON.stringify(error.response.body, null, 2));
+    if (error.response && error.response.data) console.log(JSON.stringify(error.response.data, null, 2));
     process.exit(1);
   }
 })();
