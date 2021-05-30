@@ -3,7 +3,7 @@ const got = require('got');
 
 const {
   GITHUB_REPOSITORY: repository,
-  // GITHUB_RUN_ID: run_id,
+  GITHUB_RUN_ID: run_id,
   QUEUE_TOKEN: token,
   QUEUE_DISPATCH_TOKEN: dispatchToken
 } = process.env;
@@ -61,6 +61,15 @@ async function triggerNext() {
   });
 }
 
+async function cancelWorkflow() {
+  await client.post(`https://api.github.com/repos/${repository}/actions/runs/${run_id}/cancel`, {
+    headers: {
+      'Accept': 'application/vnd.github.v3+json',
+      'Authorization': `token ${token}`
+    }
+  });
+}
+
 (async () => {
   try {
     const uploadedFiles = JSON.parse(fs.readFileSync('uploaded-list.txt'));
@@ -76,7 +85,8 @@ async function triggerNext() {
       }
       else {
         console.log('较多文件下载失败，停止触发下一次任务');
-        process.exit(1);
+        await cancelWorkflow();
+        await new Promise(res => setTimeout(() => res(), 60000));
       }
     }
   }
