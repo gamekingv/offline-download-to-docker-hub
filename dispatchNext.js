@@ -3,6 +3,8 @@ const got = require('got');
 
 const {
   GITHUB_REPOSITORY: repository,
+  GITHUB_RUN_ID: run_id,
+  QUEUE_TOKEN: token,
   QUEUE_DISPATCH_TOKEN: dispatchToken
 } = process.env;
 
@@ -31,13 +33,26 @@ async function executeTask({ torrent, file }) {
   });
 }
 
+async function cancelWorkflow() {
+  await client.post(`https://api.github.com/repos/${repository}/actions/runs/${run_id}/cancel`, {
+    headers: {
+      'Accept': 'application/vnd.github.v3+json',
+      'Authorization': `token ${token}`
+    }
+  });
+}
+
 (async () => {
   try {
     const list = (await fs.readFile('list.txt')).toString();
     const magnet = list.match(/(.*)/)[1];
     const lastIndex = `${await fs.readFile('last-file.txt')}`;
-    if (lastIndex === 'none') return console.log('无后续任务');
-    await executeTask({ torrent: magnet, file: lastIndex });
+    if (lastIndex === 'none') {
+      console.log('无后续任务');
+      await cancelWorkflow();
+      await new Promise(res => setTimeout(() => res(), 60000));
+    }
+    else await executeTask({ torrent: magnet, file: lastIndex });
   }
   catch (error) {
     console.log(error);
