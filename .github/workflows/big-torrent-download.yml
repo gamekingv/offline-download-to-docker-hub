@@ -816,4 +816,5 @@ jobs:
         run: |
           node dispatchNext.js
         env:
+          QUEUE_TOKEN: ${{ github.token }}
           QUEUE_DISPATCH_TOKEN: ${{ secrets.TOKEN }}
