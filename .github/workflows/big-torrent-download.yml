@@ -79,7 +79,6 @@ jobs:
       - name: Remove
         if: ${{ steps.download.outputs.result == 'complete' }}
         run: |
-          chmod 777 -R ./Offline
           node remove.transmission.js
 
       # 上传
