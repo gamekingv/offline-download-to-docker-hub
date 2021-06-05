@@ -46,7 +46,7 @@ async function processOutput(output, lastIndex = -1) {
   matchResult.forEach((item, index) => {
     if (item.size > singleFileMaxSize) {
       bigFiles.push(`${item.name}：${(item.size / (1024 * 1024 * 1024)).toFixed(2)}GB`);
-      ignoreFiles.push(item);
+      ignoreFiles.push(item.index);
       return;
     }
     totalSizeTemp += item.size;
