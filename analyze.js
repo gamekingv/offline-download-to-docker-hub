@@ -37,7 +37,7 @@ async function processOutput(output, lastIndex = -1) {
   const maxSize = 500 * 1024 * 1024;
   const singleFileMaxSize = 13 * 1024 * 1024 * 1024;
   const files = output.map(({ name, length }, index) => ({ index, name, size: length })).filter(item => item.index > Number(lastIndex));
-  const paddingFiles = files.filter(item => /_____padding_file_\d+_/.test(item.name)).map(item => item.index);
+  const ignoreFiles = files.filter(item => /_____padding_file_\d+_/.test(item.name)).map(item => item.index);
   const matchResult = files.filter(item => !/_____padding_file_\d+_/.test(item.name));
   const queue = [];
   let totalSizeTemp = 0;
@@ -46,6 +46,7 @@ async function processOutput(output, lastIndex = -1) {
   matchResult.forEach((item, index) => {
     if (item.size > singleFileMaxSize) {
       bigFiles.push(`${item.name}：${(item.size / (1024 * 1024 * 1024)).toFixed(2)}GB`);
+      ignoreFiles.push(item);
       return;
     }
     totalSizeTemp += item.size;
@@ -74,7 +75,7 @@ async function processOutput(output, lastIndex = -1) {
     await fs.writeFile('download-files.json', JSON.stringify(taskList));
     taskList.forEach(info => console.log(`${info.index}: ${info.name} (${formatSize(info.size)})`));
   }
-  queue.push(paddingFiles);
+  queue.push(ignoreFiles);
   return queue;
 }
 
@@ -117,11 +118,11 @@ async function processOutput(output, lastIndex = -1) {
     });
     if (!taskInfo) throw '获取种子信息失败';
     const { files: torrentFiles, hashString } = taskInfo.arguments.torrents[0];
-    let paddingFiles;
+    let ignoreFiles;
     if (torrentFiles) {
       console.log(`magnet:?xt=urn:btih:${hashString}`);
       const list = await processOutput(torrentFiles, lastIndex);
-      paddingFiles = list.pop();
+      ignoreFiles = list.pop();
       tasks.push(...list);
     }
     else throw '无法解析种子';
@@ -133,7 +134,7 @@ async function processOutput(output, lastIndex = -1) {
     else {
       await fs.writeFile('last-file.txt', `${last}`);
     }
-    const filesUnwanted = downloadedFiles.concat(tasks.flat(), paddingFiles);
+    const filesUnwanted = downloadedFiles.concat(tasks.flat(), ignoreFiles);
     if (filesUnwanted.length > 0) {
       await client.post('http://localhost:9091/transmission/rpc', {
         json: {
