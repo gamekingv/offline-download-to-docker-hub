@@ -74,16 +74,47 @@ jobs:
           node watch.js ${{ steps.analyze.outputs.taskid }}
           echo "::set-output name=result::$(cat download-result.txt)"
 
+
+      # 清理多余文件
+      - name: Remove
+        if: ${{ steps.download.outputs.result == 'complete' }}
+        run: |
+          node remove.transmission.js
+
+      # 上传
+      - name: Upload
+        if: ${{ steps.download.outputs.result == 'complete' }}
+        run: |
+          node upload.js
+        env:
+          QUEUE_DD_URL: ${{ secrets.URL }}
+          QUEUE_DD_USERNAME: ${{ secrets.USERNAME }}
+          QUEUE_DD_PASSWORD: ${{ secrets.PASSWORD }}
+          QUEUE_DB_URL: ${{ secrets.DB_URL }}
+          QUEUE_DB_APIKEY: ${{ secrets.DB_APIKEY }}
+
+      # 执行剩余任务
+      - name: Dispatch Next Task
+        if: ${{ steps.download.outputs.result == 'complete' }}
+        run: |
+          node dispatchNext.js
+        env:
+          QUEUE_TOKEN: ${{ github.token }}
+          QUEUE_DISPATCH_TOKEN: ${{ secrets.TOKEN }}
+
       # 保存未完成下载
       - name: 'Compress'
+        if: ${{ steps.download.outputs.result == 'timeout' }}
         run: |
           tar -czvf uncomplete.tar.gz *.torrent download-files.json list.txt last-file.txt Offline
       - name: 'Upload Artifact'
+        if: ${{ steps.download.outputs.result == 'timeout' }}
         uses: actions/upload-artifact@v2
         with:
           name: download_folder
           path: uncomplete.tar.gz
           retention-days: 1
+
 
   extend_1:
     needs: download_start
@@ -770,8 +801,8 @@ jobs:
           retention-days: 1
 
   upload:
-    if: ${{ !failure() && !cancelled() }}
-    needs: extend_last
+    if: ${{ !failure() && !cancelled() && needs.download_start.outputs.result == 'timeout' }}
+    needs: [download_start, extend_last]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -784,7 +815,7 @@ jobs:
         run: |
           npm install
 
-      # 下载未完成文件
+      # 下载已完成文件
       - name: Download Artifact
         uses: actions/download-artifact@v2
         with:
