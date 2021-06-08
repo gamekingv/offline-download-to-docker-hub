@@ -564,7 +564,6 @@ function mapDirectory(root) {
         size
       });
       uploadedFiles.push(file);
-      fs.writeFileSync('uploaded-list.txt', JSON.stringify(uploadedFiles));
       uploadedCount++;
       if (uploadedCount >= 50) {
         await synchronize();
@@ -576,6 +575,7 @@ function mapDirectory(root) {
     }
     console.log('');
   }
+  fs.writeFileSync('uploaded-list.txt', JSON.stringify(uploadedFiles));
   try {
     if (uploadedCount > 0) {
       await synchronize();
