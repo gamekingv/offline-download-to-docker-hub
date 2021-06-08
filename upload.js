@@ -532,6 +532,7 @@ function mapDirectory(root) {
     if (ignoreFilters.some(filter => file.match(filter))) {
       console.log('跳过文件：' + file);
       console.log('');
+      uploadedFiles.push(file);
       continue;
     }
     try {
