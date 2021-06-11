@@ -1,12 +1,12 @@
 name: clear-workflow
 env:
-  RETAIN_DAY: 6
+  RETAIN_DAY: 7
 concurrency: 
   group: clear-workflow
   cancel-in-progress: true
 on:
-  # schedule:
-    # - cron:  '15/10 * * * *'
+  schedule:
+    - cron:  '45 21 * * 6'
   workflow_dispatch:
 
 jobs:
