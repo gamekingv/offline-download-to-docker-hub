@@ -1,1 +1,1 @@
-https://github.com/gamekingv/offline-download-to-docker-hub/releases/download/temp/temp2.zip
+https://github.com/gamekingv/offline-download-to-docker-hub/releases/download/temp/temp.zip
