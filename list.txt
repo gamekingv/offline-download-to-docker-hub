@@ -1,1 +1,2 @@
-magnet:?xt=urn:btih:000383a9a5bea172ce3e349c23c0a770aae34281&dn=%2B%2B%2B%20%5BHD%5D%20NACR-442%20%E8%8B%A5%E3%81%8F%E3%81%A6%E7%B6%BA%E9%BA%97%E3%81%AA%E7%88%B6%E3%81%AE%E5%BE%8C%E5%A6%BB%E3%81%8C%E6%B7%AB%E4%B9%B1%E3%81%A7%E7%97%B4%E5%A5%B3%E3%81%A0%E3%81%A3%E3%81%9F%E4%BB%B6%E3%80%82%20%E9%BB%92%E5%B7%9D%E3%81%99%E3%81%BF%E3%82%8C&tr=http%3A%2F%2Fsukebei.tracker.wf%3A8888%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce
+https://sf1-ttcdn-tos.pstatp.com/obj/tos-cn-v-0004/7803b2b9de9047f6a4b30665aa480b68
+  out=123.mp4
