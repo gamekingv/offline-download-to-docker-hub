@@ -43,7 +43,7 @@ function mapDirectory(root) {
     for (const index of selectedIndex) {
       const indices = index.split('-');
       if (indices.length === 1) selected.push(Number(index));
-      else selected.push(...[...Array(number(indices[1]) - number(indices[0]) + 1).keys()].map(e => e + number(indices[0])));
+      else selected.push(...[...Array(Number(indices[1]) - Number(indices[0]) + 1).keys()].map(e => e + Number(indices[0])));
     }
     const torrent = (await fsp.readdir('./Offline')).find((item) => /\.torrent$/.test(item));
     if (!torrent) throw '读取种子文件失败';
