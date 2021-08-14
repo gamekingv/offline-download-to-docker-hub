@@ -37,8 +37,14 @@ function mapDirectory(root) {
   try {
     const list = `${await fsp.readFile('list.txt')}`;
     if (!list.includes('  select-file=')) return;
-    const selected = list.match(/  select-file=(.*)/)[1].split(',').map(index => Number(index));
-    if (!selected) throw '读取选中文件失败';
+    const selectedIndex = list.match(/  select-file=(.*)/)[1].split(',');
+    if (!selectedIndex) throw '读取选中文件失败';
+    const selected = [];
+    for (const index of selectedIndex) {
+      const indices = index.split('-');
+      if (indices.length === 1) selected.push(Number(index));
+      else selected.push(...[...Array(number(indices[1]) - number(indices[0]) + 1).keys()].map(e => e + number(indices[0])));
+    }
     const torrent = (await fsp.readdir('./Offline')).find((item) => /\.torrent$/.test(item));
     if (!torrent) throw '读取种子文件失败';
     const files = [];
