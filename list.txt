@@ -1,2 +1,2 @@
 magnet:?xt=urn:btih:137ee9c27bc68ad9d65c1cfcabe099dcc51247db
-  select-file=29-48
+  select-file=27-64
