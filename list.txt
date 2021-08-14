@@ -1,2 +1,2 @@
-https://qcloudcos.xunjiepdf.com/xunjievideo/tempsource/202108121501/c7b45a94fcbb422f86a51265f3a09c56/DY62-%e8%bf%85%e6%8d%b7PDF%e8%bd%ac%e6%8d%a2%e5%99%a8.mp4
-  out=123456.mp4
+magnet:?xt=urn:btih:137ee9c27bc68ad9d65c1cfcabe099dcc51247db
+  select-file=29-48
